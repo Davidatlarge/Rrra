@@ -8,6 +8,7 @@ decay.constant.223Ra <- log(2)/11.4 # 11.4 is 223Rn half life
 
 # metadata
 filtration_volume_L <- 200.5
+sampling.time = as.POSIXct("2021-06-04 10:29:00")
 
 # get blank summary values
 blk <- summarise_blank(list.files("data/AL557/Count1/", full.names = TRUE))
@@ -24,34 +25,34 @@ CPM220 <- Rn$count.summary$CPM220
 CPM219 <- Rn$count.summary$CPM219
 detector <- Rn$detector
 
-## process sample
+## process sample - NEEDS ONLY DATA FROM SINGLE COUNT
 midpoint <- counting_midpoint(start.time = start.time, Runtime = Runtime) # hard to compare with excel cos of different formats
 
 # Decay Factor
-decay.factor223 <- decay_factor(223, midpoint = midpoint, sampling.time = as.POSIXct("2021-06-04 10:29:00")) # not the same as in excel - rounding?!
-decay.factor224 <- decay_factor(224, midpoint = midpoint, sampling.time = as.POSIXct("2021-06-04 10:29:00")) # not the same as in excel - rounding?!
+decay.factor223 <- decay_factor(223, midpoint = midpoint, sampling.time = sampling.time) # not the same as in excel - rounding?!
+decay.factor224 <- decay_factor(224, midpoint = midpoint, sampling.time = sampling.time) # not the same as in excel - rounding?!
 
-# ERR Total CPM
+# ERR Total CPM - NEEDS ONLY DATA FROM SINGLE COUNT
 total.counts <- Runtime * CPMTot
 err.total.cpm <- sqrt(total.counts) / Runtime
 
-# Background
+# Background - NEEDS ONLY DATA FROM SINGLE COUNT
 cc.220 <- ((CPMTot-CPM220-CPM219)^2*0.01) / ((1-((CPMTot-CPM220-CPM219)*0.01)))
 cc.219 <- ((CPMTot-CPM220-cc.220-CPM219)^2*0.000093) / ((1-(CPMTot-CPM220-cc.220-CPM219)*0.000093))
 
-# Err 220 CPM
+# Err 220 CPM - NEEDS ONLY DATA FROM SINGLE COUNT
 counts.220 <- Runtime * CPM220
 err.220.cpm <- sqrt(counts.220) / Runtime
 err.220.2by <- 2/sqrt(counts.220)
 err.220 <- sqrt(counts.220-(cc.220*Runtime)) / (counts.220-(cc.220*Runtime))
 
-# Err 219 CPM
+# Err 219 CPM - NEEDS ONLY DATA FROM SINGLE COUNT
 counts.219 <- Runtime * CPM219
 err.219.cpm <- sqrt(counts.219) / Runtime
 err.219.2by <- 2/sqrt(counts.219)
 err.219 <- sqrt((CPM219*total.counts)-(cc.219*total.counts))/((CPM219*total.counts)-(cc.219*total.counts))
 
-# Background (cont.)
+# Background (cont.) - NEEDS ONLY DATA FROM SINGLE COUNT
 x <- CPMTot-CPM220-CPM219
 err.x <- sqrt((err.total.cpm^2)+(err.220.cpm^2)+(err.219.cpm^2))
 err.cc.220 <- err.x*(((2*0.01*x)-(0.01*x)^2)/(1-0.01*x)^2)
@@ -59,7 +60,7 @@ err.corr.220 <- sqrt((err.220.cpm^2)+(err.cc.220^2)) #  this belongs in the Corr
 err.y <- sqrt((err.219.cpm^2)+(err.corr.220^2)+(err.total.cpm^2))
 err.cc.219 <- err.y*(((2*0.000093*x-(0.01*x))^2)/(1-(0.000093*x)^2))
 
-# Corrections
+# Corrections - NEEDS ONLY DATA FROM SINGLE COUNT
 corr.220 <- CPM220-cc.220
 err.corr.220
 corr.219 <- CPM219-cc.219
