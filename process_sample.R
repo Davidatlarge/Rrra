@@ -1,6 +1,9 @@
 # load function
 sapply(list.files("functions/", full.names = T), source)
 
+# manual/constants
+Estimate.227Ac <- 0.05
+
 # metadata
 filtration_volume_L <- 200.5
 
@@ -62,6 +65,7 @@ err.corr.219 <- sqrt((err.219.cpm^2)+(err.cc.219^2))
 
 # efficiency
 detector.eff.223 <- eff$mean[eff$detector==detector & eff$isotope==223]
+detector.eff.223.sd <- eff$sd[eff$detector==detector & eff$isotope==223]
 detector.eff.224 <- eff$mean[eff$detector==detector & eff$isotope==224]
 detector.eff.224.sd <- eff$sd[eff$detector==detector & eff$isotope==224]
 effic <- (((detector.eff.223*2)*(CPM219-cc.219))^2*0.01) / (1+((detector.eff.223*2)*(CPM219-cc.219))*0.01) # very minor difference from excel, when copying the efficiency value
@@ -72,6 +76,22 @@ detector.blank.220 <- blk$mean[blk$detector==detector & blk$isotope==224]
 final.220 <- corr.220-effic-detector.blank.220
 err.final.220 <- err.corr.220
 dpm.220 <- final.220/detector.eff.224
-err.dpm.220 <- sqrt( ((err.final.220/detector.eff.224)^2) + (final.220*detector.eff.224.sd/detector.eff.224)^2 )
+err.dpm.220 <- sqrt( (err.final.220/detector.eff.224)^2 + (final.220*detector.eff.224.sd/detector.eff.224)^2 )
 dpm.220per100L <- dpm.220/filtration_volume_L*100
-err.dpm.220per100L <- sqrt( ((err.dpm.220/filtration_volume_L)^2) + ((dpm.220*filtration_volume_L*0.03/filtration_volume_L^2)^2) )*100
+err.dpm.220per100L <- sqrt( (err.dpm.220/filtration_volume_L)^2 + (dpm.220*filtration_volume_L*0.03/filtration_volume_L^2)^2 ) * 100
+
+
+# Derived from Count 2
+# Decay Corrected. - these are the final values but depend on count 2
+# Th estimate 
+# Final 224 Values - same as Decay corrected
+
+# Calculating 219 from 220
+qm <- sqrt(CPM220*Runtime)/(CPM220*Runtime)
+from.220 <- corr.220*0.0255
+final.219 <- corr.219-from.220
+err.final.219 <- sqrt(err.corr.219^2 + (0.0255*err.corr.220)^2)
+dpm.219 <- final.219/detector.eff.223
+err.dpm.219 <- sqrt( (err.final.219/detector.eff.223)^2 + (final.219*detector.eff.223.sd/detector.eff.223^2)^2 ) # the detector.eff.223.sd term is ambiguous in the excel sheet but makes more sense than detector.eff.223
+dpm.219per100L <- dpm.219/filtration_volume_L*100
+err.dpm.219per100L <- sqrt( (err.dpm.219/filtration_volume_L)^2 + (dpm.219*filtration_volume_L*0.03/filtration_volume_L^2)^2 ) * 100
