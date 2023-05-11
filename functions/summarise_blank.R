@@ -6,7 +6,7 @@
 # assigns the results so that only 220 counts are used with Rn224 and 219 counts with Rn223
 # it is possible to supply only one file name 
 summarise_blank <- function(files,
-                            summarise = TRUE # should the results of all files be summarised, if FALSE returns a table of individual efficiencies
+                            summarise = TRUE # should the results of all files be summarised, if FALSE returns a table of individual blanks
 ) {
   source("functions/read_rn.R")
   types <- unlist(lapply(files, function(x) identify_type(x)))
@@ -42,7 +42,7 @@ summarise_blank <- function(files,
     blk$isotope[blk$isotope=="CMP220"] <- 224
     
     # check validity
-    if(any(eff$n<3)) {
+    if(any(blk$n<3)) {
       message("some blank summaries have been calculated with fewer than 3 values")
     }
   }
