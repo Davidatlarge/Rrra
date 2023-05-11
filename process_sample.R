@@ -3,6 +3,8 @@ sapply(list.files("functions/", full.names = T), source)
 
 # manual/constants
 estimate.227Ac <- 0.05
+decay.constant.224Ra <- log(2)/3.66 # 3.66 is 224Rn half life
+decay.constant.223Ra <- log(2)/11.4 # 11.4 is 223Rn half life
 
 # metadata
 filtration_volume_L <- 200.5
@@ -81,7 +83,11 @@ dpm.220per100L <- dpm.220/filtration_volume_L*100
 err.dpm.220per100L <- sqrt( (err.dpm.220/filtration_volume_L)^2 + (dpm.220*filtration_volume_L*0.03/filtration_volume_L^2)^2 ) * 100
 
 # Derived from Count 2
-fiber.228Th <- 10.33
+10.33
+dpm.220.c2 <- 23.49
+time.since.count1 <- 8.37
+dpm.220.c2.per100L <- dpm.220.c2/filtration_volume_L*100
+fiber.228Th <- (dpm.220per100L-(dpm.220.c2.per100L*exp(decay.constant.224Ra*time.since.count1))) / (1-exp(decay.constant.224Ra*time.since.count1))
 
 # Decay Corrected. - these are the final values but depend on count 2
 decay.corr.dpm.220.100L <- (dpm.220per100L-fiber.228Th)/decay.factor224
