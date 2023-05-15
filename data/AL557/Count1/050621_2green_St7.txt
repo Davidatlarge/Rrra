@@ -1,0 +1,13 @@
+C:\RaDeCC\Data\AL557_062021\050621_2green_St7.txt
+Start Time 6/5/2021  20:53:37
+Runtime  CPM219   Cnt219   CPM220   Cnt220   CPMTot   CntTot
+Group 4 Stopped 6/5/2021  20:53:51
+ 
+Count Summary
+C:RaDeCC\DataRaDeCC.sum
+Runtime  CPM219   Cnt219  CPM220   Cnt220  CPMTot   CntTot
+0000.23  000.000  000000  000.000  000000  000.000  000000
+System Number 4
+(219:Delay= 0.01 Window= 5.6)(220:Delay= 5.61 Window= 600)
+Eff Last Updated  15Jan13  219= Uset  220= Uset  Tot= Uset
+

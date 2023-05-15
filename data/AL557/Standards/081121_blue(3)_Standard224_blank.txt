@@ -1,0 +1,15 @@
+C:\RaDeCC\Data\081121_blue(4)_Standard224_blank.txt
+Start Time 08/11/2021  10:13:37
+Runtime  CPM219   Cnt219   CPM220   Cnt220   CPMTot   CntTot
+0010.00  000.000  0000000  000.000  0000000  001.300  0000013
+0020.02  000.000  0000000  000.000  0000000  000.849  0000004
+Group 4 Stopped 08/11/2021  10:34:02
+ 
+Count Summary
+C:\RaDeCC\Data\RaDeCC.sum
+Runtime  CPM219   Cnt219  CPM220   Cnt220  CPMTot   CntTot
+0020.42  000.000  000000  000.000  000000  000.833  000017
+System Number 4
+(219:Delay= 0.01 Window= 5.6)(220:Delay= 5.61 Window= 600)
+Eff Last Updated  15Jan13  219= Uset  220= Uset  Tot= Uset
+
