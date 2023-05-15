@@ -60,4 +60,7 @@ final_ra(eff = summarise_efficiency(list.files("data/AL557/Standards/", full.nam
 # next
 - reading meta data
 - finding, sorting and combing multiple measurements (count x) of one sample
-- optimizations
+- workflow optimization
+- code clean-up 
+  - get rid of unnecessary ()
+  - remove objects not needed downstream
