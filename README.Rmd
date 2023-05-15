@@ -1,14 +1,63 @@
 ---
 title: "Rrrn"
 author: "David Kaiser"
-date: "2023-05-15"
 output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
+sapply(list.files("functions/", full.names = T), source)
 ```
 
-## Rrrn
-R toolbox for processing of Radium data. 
+# Rrrn
+R toolbox for processing of Radium data.
 
+## read data from machine output file
+`read_ra()` returns a list with all the content of the file
+
+```{r}
+read_ra(file = "data/AL557/Count1/050621_1grey_St10_blank.txt")
+```
+
+files <- list.files("data/AL557/", recursive = TRUE, full.names = TRUE, pattern = ".txt$")
+
+## get summaries of blank values and detector efficiency 
+`summarise_blank()` and `summarise_efficiency()` take a list of file names, call `identify_type()` to identify blanks and standards, respectively, call `read_ra()` to read the results, and return a summary when `summarise = TRUE` (the default), or a table of all values if `summarise = FALSE`.
+
+```{r}
+files <- list.files("data/AL557/", recursive = TRUE, full.names = TRUE, pattern = ".txt$")
+summarise_blank(files)
+```
+
+A warning will be printed if less than 3 values are used in a summary.
+
+```{r}
+summarise_efficiency(files)
+```
+
+`summarise_efficiency()` also calls `calculate_efficiency()` to calculate efficiency.
+
+```{r}
+calculate_efficiency(Ra = read_ra("data/AL557/Standards/050621_1orange_223Rastandard.txt"))
+```
+
+## process the results of sample measurements
+`process_ra()` takes the output of `read_ra()` and returns values that can be derived solely from the data in one measurement result file.
+
+```{r}
+process_ra(read_ra("data/AL557/Count1/050621_1grey_St3.txt"))
+```
+
+`final_ra()` takes the output of `summarise_efficiency()`, `summarise_blank()`, `process_ra()`, as well as additional metadata to return more derived values.
+
+```{r}
+final_ra(eff = summarise_efficiency(list.files("data/AL557/Standards/", full.names = TRUE)),
+         blk = summarise_blank(list.files("data/AL557/Count1/", full.names = TRUE)),
+         pro = process_ra(read_ra(file = "data/AL557/Count1/050621_1grey_St3.txt")),
+         filtration_volume_L <- 200)
+```
+
+# next
+- reading meta data
+- finding, sorting and combing multiple measurements (count x) of one sample
+- optimizations
