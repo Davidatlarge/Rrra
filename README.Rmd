@@ -5,7 +5,7 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = TRUE)
 sapply(list.files("functions/", full.names = T), source)
 ```
 
@@ -18,8 +18,6 @@ R toolbox for processing of Radium data.
 ```{r}
 read_ra(file = "data/AL557/Count1/050621_1grey_St10_blank.txt")
 ```
-
-files <- list.files("data/AL557/", recursive = TRUE, full.names = TRUE, pattern = ".txt$")
 
 ## get summaries of blank values and detector efficiency 
 `summarise_blank()` and `summarise_efficiency()` take a list of file names, call `identify_type()` to identify blanks and standards, respectively, call `read_ra()` to read the results, and return a summary when `summarise = TRUE` (the default), or a table of all values if `summarise = FALSE`.
@@ -45,16 +43,16 @@ calculate_efficiency(Ra = read_ra("data/AL557/Standards/050621_1orange_223Rastan
 `process_ra()` takes the output of `read_ra()` and returns values that can be derived solely from the data in one measurement result file.
 
 ```{r}
-process_ra(read_ra("data/AL557/Count1/050621_1grey_St3.txt"))
+t( process_ra(read_ra("data/AL557/Count1/050621_1grey_St3.txt")) ) # transpose for better readability here
 ```
 
 `final_ra()` takes the output of `summarise_efficiency()`, `summarise_blank()`, `process_ra()`, as well as additional metadata to return more derived values.
 
 ```{r}
-final_ra(eff = summarise_efficiency(list.files("data/AL557/Standards/", full.names = TRUE)),
-         blk = summarise_blank(list.files("data/AL557/Count1/", full.names = TRUE)),
-         pro = process_ra(read_ra(file = "data/AL557/Count1/050621_1grey_St3.txt")),
-         filtration_volume_L <- 200)
+t( final_ra(eff = summarise_efficiency(list.files("data/AL557/Standards/", full.names = TRUE)), # transpose for better readability here
+            blk = summarise_blank(list.files("data/AL557/Count1/", full.names = TRUE)),
+            pro = process_ra(read_ra(file = "data/AL557/Count1/050621_1grey_St3.txt")),
+            filtration_volume_L <- 200) )
 ```
 
 # next

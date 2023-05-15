@@ -10,6 +10,10 @@ R toolbox for processing of Radium data.
 
 `read_ra()` returns a list with all the content of the file
 
+``` r
+read_ra(file = "data/AL557/Count1/050621_1grey_St10_blank.txt")
+```
+
     ## $filename
     ## [1] "050621_1grey_St10_blank.txt"
     ## 
@@ -48,9 +52,6 @@ R toolbox for processing of Radium data.
     ## 12   12.02      0      0      0      0  1.664      2
     ## 13   13.02      0      0      0      0  1.536      0
 
-files \<- list.files(“data/AL557/”, recursive = TRUE, full.names = TRUE,
-pattern = “.txt\$”)
-
 ## get summaries of blank values and detector efficiency
 
 `summarise_blank()` and `summarise_efficiency()` take a list of file
@@ -58,6 +59,11 @@ names, call `identify_type()` to identify blanks and standards,
 respectively, call `read_ra()` to read the results, and return a summary
 when `summarise = TRUE` (the default), or a table of all values if
 `summarise = FALSE`.
+
+``` r
+files <- list.files("data/AL557/", recursive = TRUE, full.names = TRUE, pattern = ".txt$")
+summarise_blank(files)
+```
 
     ##    detector isotope        mean         sd  n
     ## 1      blue     223 0.000000000 0.00000000  9
@@ -75,6 +81,10 @@ when `summarise = TRUE` (the default), or a table of all values if
 
 A warning will be printed if less than 3 values are used in a summary.
 
+``` r
+summarise_efficiency(files)
+```
+
     ## some efficiencies have been calculated with fewer than 3 standard values
 
     ##   detector isotope       mean          sd n
@@ -90,6 +100,10 @@ A warning will be printed if less than 3 values are used in a summary.
 `summarise_efficiency()` also calls `calculate_efficiency()` to
 calculate efficiency.
 
+``` r
+calculate_efficiency(Ra = read_ra("data/AL557/Standards/050621_1orange_223Rastandard.txt"))
+```
+
     ##                           filename         type isotope detector    eff.220
     ## 1 050621_1orange_223Rastandard.txt 223_standard     223   orange 0.02040784
     ##     eff.219
@@ -100,33 +114,73 @@ calculate efficiency.
 `process_ra()` takes the output of `read_ra()` and returns values that
 can be derived solely from the data in one measurement result file.
 
-    ##                   file detector          start.time Runtime            midpoint
-    ## 1 050621_1grey_St3.txt     grey 2021-06-05 09:52:46  144.72 2021-06-05 12:17:29
-    ##   CPMTot CPM219 CPM220 err.total.cpm total.counts err.220.cpm err.220.2by
-    ## 1 11.284  0.304  3.262     0.2792333      1633.02   0.1501335  0.09204999
-    ##      err.220 counts.220 err.219.cpm err.219.2by    err.219 counts.219    cc.220
-    ## 1 0.05138956   472.0766  0.04583239   0.3015289 0.04522912   43.99488 0.6454945
-    ##   err.cc.220     x    err.x      cc.219  err.cc.219        y     err.y corr.220
-    ## 1 0.05582238 7.718 0.320331 0.004654953 0.001865508 8.363495 0.3251585 2.616505
-    ##   err.corr.220 corr.219 err.corr.219
-    ## 1    0.1601756 0.299345   0.04587034
+``` r
+t( process_ra(read_ra("data/AL557/Count1/050621_1grey_St3.txt")) ) # transpose for better readability here
+```
+
+    ##               [,1]                  
+    ## file          "050621_1grey_St3.txt"
+    ## detector      "grey"                
+    ## start.time    "2021-06-05 09:52:46" 
+    ## Runtime       "144.72"              
+    ## midpoint      "2021-06-05 12:17:29" 
+    ## CPMTot        "11.284"              
+    ## CPM219        "0.304"               
+    ## CPM220        "3.262"               
+    ## err.total.cpm "0.2792333"           
+    ## total.counts  "1633.02"             
+    ## err.220.cpm   "0.1501335"           
+    ## err.220.2by   "0.09204999"          
+    ## err.220       "0.05138956"          
+    ## counts.220    "472.0766"            
+    ## err.219.cpm   "0.04583239"          
+    ## err.219.2by   "0.3015289"           
+    ## err.219       "0.04522912"          
+    ## counts.219    "43.99488"            
+    ## cc.220        "0.6454945"           
+    ## err.cc.220    "0.05582238"          
+    ## x             "7.718"               
+    ## err.x         "0.320331"            
+    ## cc.219        "0.004654953"         
+    ## err.cc.219    "0.001865508"         
+    ## y             "8.363495"            
+    ## err.y         "0.3251585"           
+    ## corr.220      "2.616505"            
+    ## err.corr.220  "0.1601756"           
+    ## corr.219      "0.299345"            
+    ## err.corr.219  "0.04587034"
 
 `final_ra()` takes the output of `summarise_efficiency()`,
 `summarise_blank()`, `process_ra()`, as well as additional metadata to
 return more derived values.
 
+``` r
+t( final_ra(eff = summarise_efficiency(list.files("data/AL557/Standards/", full.names = TRUE)), # transpose for better readability here
+            blk = summarise_blank(list.files("data/AL557/Count1/", full.names = TRUE)),
+            pro = process_ra(read_ra(file = "data/AL557/Count1/050621_1grey_St3.txt")),
+            filtration_volume_L <- 200) )
+```
+
     ## some efficiencies have been calculated with fewer than 3 standard values
 
     ## some blank summaries have been calculated with fewer than 3 values
 
-    ##                   file        effic final.220 err.final.220  dpm.220
-    ## 1 050621_1grey_St3.txt 9.133376e-05  2.595914     0.1601756 33.13582
-    ##   err.dpm.220 dpm.220per100L err.dpm.220per100L
-    ## 1    2.103475       16.56791            1.16327
+    ##                    [,1]                  
+    ## file               "050621_1grey_St3.txt"
+    ## effic              "9.133376e-05"        
+    ## final.220          "2.595914"            
+    ## err.final.220      "0.1601756"           
+    ## dpm.220            "33.13582"            
+    ## err.dpm.220        "2.103475"            
+    ## dpm.220per100L     "16.56791"            
+    ## err.dpm.220per100L "1.16327"
 
 # next
 
 - reading meta data
 - finding, sorting and combing multiple measurements (count x) of one
   sample
-- optimizations
+- workflow optimization
+- code clean-up
+  - get rid of unnecessary ()
+  - remove objects not needed downstream
