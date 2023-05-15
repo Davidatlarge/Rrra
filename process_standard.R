@@ -1,29 +1,35 @@
-# load functions
-sapply(list.files("functions/", full.names = T), source)
+files <- list.files("data/AL557/", recursive = TRUE, full.names = TRUE, pattern = ".txt$")
 
-# find relevant files
-files <- list.files("data/AL557/Standards/", full.names = TRUE)
+# get blank summary values
+blk <- summarise_blank(files)
+# get detector efficiency summary values
+eff <- summarise_efficiency(files)
+
+read_ra(files[2])
+
+# for now I assume that StX is the sample identifier
+source("functions/read_ra.R")
 types <- unlist(lapply(files, function(x) identify_type(x)))
-standards <- files[which(grepl("standard$", types))]
+samples <- files[which(types=="sample")]
+if(length(samples)<1) {stop("no samples indentified in input files")}
 
-# calculate efficiencies from standard measurements
-eff <- data.frame()
-for(std in standards) {
-  eff <- rbind(eff,
-               calculate_efficiency(read_rn(std)) )
+spl <- data.frame()
+for(sample in samples) {
+  current <- read_ra(sample)
+  if(!is.na(current$end.time) & all(!is.na(current$count.summary))) {
+      spl <- rbind(spl,
+               data.frame(file = sub(".*[\\\\|/]", "", sample),
+                          detector = current$detector,
+                          start.time = current$start.time,
+                          end.time = current$end.time, # may not be needed
+                          Runtime = current$count.summary$Runtime,
+                          CMP219 = current$count.summary$CPM219,
+                          CMP220 = current$count.summary$CPM220,
+                          CMPTot = current$count.summary$CPMTot))
+  }
 }
 
-# summarise results
-eff <- merge(aggregate(eff.220~detector, data = eff[eff$isotope==224,], 
-                       function(x) c(mean = mean(x), sd = sd(x), n = length(x))),
-             aggregate(eff.219~detector, data = eff[eff$isotope==223,], 
-                       function(x) c(mean = mean(x), sd = sd(x), n = length(x))))
-eff <- do.call(data.frame, eff) # this because the result of each aggregate is a 3-column matrix that is placed into one column of the df, resulting in a df of 2 columns (after merging it's 3 cols)
-colnames(eff) <- c("detector", "mean.eff.Rn224", "sd.eff.Rn224", "n.eff.Rn224", "mean.eff.Rn223", "sd.eff.Rn223", "n.eff.Rn223")
+spl$sample <- sub(".*(st[0-9]+).+", "\\1", spl$file, ignore.case = TRUE)
+spl$sample <- tolower(spl$sample)
 
-# check validity
-if(any(eff$n.eff.Rn224<3 | eff$n.eff.Rn223<3)) {
-  warning("some efficiencies have been calculated with less than 3 standard values")
-  print(eff)
-}
-
+spl[order(spl$sample),]

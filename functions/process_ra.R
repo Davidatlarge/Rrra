@@ -1,15 +1,15 @@
-# takes an Rn object and outputs all parameters from Count 1 sheet that can be calculated from the Rn data alone
+# takes an Ra object and outputs all parameters from Count 1 sheet that can be calculated from the Ra data alone
 
-process_rn <- function(Rn # a list object produced by read_rn()
+process_ra <- function(Ra # a list object produced by read_ra()
 ) {
   source("functions/counting_midpoint.R")
   
   # extract variables
-  start.time <- Rn$start.time
-  Runtime <- Rn$count.summary$Runtime
-  CPMTot <- Rn$count.summary$CPMTot
-  CPM220 <- Rn$count.summary$CPM220
-  CPM219 <- Rn$count.summary$CPM219
+  start.time <- Ra$start.time
+  Runtime <- Ra$count.summary$Runtime
+  CPMTot <- Ra$count.summary$CPMTot
+  CPM220 <- Ra$count.summary$CPM220
+  CPM219 <- Ra$count.summary$CPM219
   
   ## process sample
   midpoint <- counting_midpoint(start.time = start.time, Runtime = Runtime) # hard to compare with excel cos of different formats
@@ -48,8 +48,8 @@ process_rn <- function(Rn # a list object produced by read_rn()
   err.corr.219 <- sqrt((err.219.cpm^2)+(err.cc.219^2))
   y <- CPMTot-corr.220-CPM219
   
-  return(data.frame(file = sub(".*[\\\\|/]", "", Rn$filename),
-                    detector = Rn$detector,
+  return(data.frame(file = sub(".*[\\\\|/]", "", Ra$filename),
+                    detector = Ra$detector,
                     start.time = start.time,
                     Runtime = Runtime,
                     midpoint = midpoint,
@@ -82,5 +82,5 @@ process_rn <- function(Rn # a list object produced by read_rn()
                     err.corr.219 = err.corr.219) )
 }
 
-# source("functions/read_rn.R")
-# process_rn(read_rn("data/AL557/Count1/050621_1grey_St3.txt"))
+# source("functions/read_ra.R")
+# process_ra(read_ra("data/AL557/Count1/050621_1grey_St3.txt"))

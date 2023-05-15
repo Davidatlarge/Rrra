@@ -1,14 +1,14 @@
 # summarise results of blank measurements in a list of files
 # blanks are identified from the path/file name, calling identify_type(),
 # so other measurement files can be listed but will be ignored.
-# calls read_rn() and applies it to the listed files
+# calls read_ra() and applies it to the listed files
 # then aggregates the results (unless summarise ==FALSE)
-# assigns the results so that only 220 counts are used with Rn224 and 219 counts with Rn223
+# assigns the results so that only 220 counts are used with Ra224 and 219 counts with Ra223
 # it is possible to supply only one file name 
 summarise_blank <- function(files,
                             summarise = TRUE # should the results of all files be summarised, if FALSE returns a table of individual blanks
 ) {
-  source("functions/read_rn.R")
+  source("functions/read_ra.R")
   types <- unlist(lapply(files, function(x) identify_type(x)))
   blanks <- files[which(grepl("blank$", types))]
   if(length(blanks)<1) {stop("no blanks indentified in input files")}
@@ -16,7 +16,7 @@ summarise_blank <- function(files,
   # extract values from blank measurement results
   blk <- data.frame()
   for(blank in blanks) {
-    current <- read_rn(blank)
+    current <- read_ra(blank)
     blk <- rbind(blk,
                  data.frame(file = sub(".*[\\\\|/]", "", blank),
                             detector = current$detector,

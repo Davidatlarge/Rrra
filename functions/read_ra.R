@@ -1,5 +1,5 @@
-# function to read .txt files that contain output of Rn analysis
-read_rn <- function(file) {
+# function to read .txt files that contain output of Ra analysis
+read_ra <- function(file) {
 
   # read file by lines
   filelines <- readLines(file)
@@ -76,4 +76,4 @@ read_rn <- function(file) {
   
 }
 
-#read_rn(file = "data/AL557/Count1/050621_1grey_St10_blank.txt")
+#read_ra(file = "data/AL557/Count1/050621_1grey_St10_blank.txt")

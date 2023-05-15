@@ -1,7 +1,7 @@
 # summarise results of standard measurements in a list of files
 # standards are identified from the path/file name, calling identify_type(),
 # so other measurement files can be listed but will be ignored.
-# calls read_rn() and calculate_efficiency()) and applies it to the listed files
+# calls read_ra() and calculate_efficiency()) and applies it to the listed files
 # filters the results so that only 220 efficiency is used with Rn224 and 219 efficiency with Rn223
 # then aggregates the results (unless summarise ==FALSE)
 # it is possible to supply only one file name 
@@ -11,7 +11,7 @@ summarise_efficiency <- function(files,
   # load functions
   source("functions/identify_type.R")
   source("functions/calculate_efficiency.R")
-  source("functions/read_rn.R")
+  source("functions/read_ra.R")
   
   # find relevant files
   types <- unlist(lapply(files, function(x) identify_type(x)))
@@ -22,7 +22,7 @@ summarise_efficiency <- function(files,
   eff <- data.frame()
   for(std in standards) {
     eff <- rbind(eff,
-                 calculate_efficiency(read_rn(std)) )
+                 calculate_efficiency(read_ra(std)) )
   }
   
   if(summarise) {

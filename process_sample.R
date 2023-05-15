@@ -3,8 +3,8 @@ sapply(list.files("functions/", full.names = T), source)
 
 # manual/constants
 estimate.227Ac <- 0.05
-decay.constant.224Ra <- log(2)/3.66 # 3.66 is 224Rn half life
-decay.constant.223Ra <- log(2)/11.4 # 11.4 is 223Rn half life
+decay.constant.224Ra <- log(2)/3.66 # 3.66 is 224Ra half life
+decay.constant.223Ra <- log(2)/11.4 # 11.4 is 223Ra half life
 
 # metadata
 filtration_volume_L <- 200.5
@@ -17,30 +17,30 @@ blk <- summarise_blank(list.files("data/AL557/Count1/", full.names = TRUE))
 eff <- summarise_efficiency(list.files("data/AL557/Standards/", full.names = TRUE))
 
 # read data
-Rn <- read_rn("data/AL557/Count1/050621_1grey_St3.txt")
-start.time <- Rn$start.time
-Runtime <- Rn$count.summary$Runtime
-CPMTot <- Rn$count.summary$CPMTot
-CPM220 <- Rn$count.summary$CPM220
-CPM219 <- Rn$count.summary$CPM219
-detector <- Rn$detector
+Ra <- read_ra("data/AL557/Count1/050621_1grey_St3.txt")
+start.time <- Ra$start.time
+Runtime <- Ra$count.summary$Runtime
+CPMTot <- Ra$count.summary$CPMTot
+CPM220 <- Ra$count.summary$CPM220
+CPM219 <- Ra$count.summary$CPM219
+detector <- Ra$detector
 
 # Decay Factor - is this used again?
 decay.factor223 <- decay_factor(223, midpoint = midpoint, sampling.time = sampling.time) # not the same as in excel - rounding?!
 decay.factor224 <- decay_factor(224, midpoint = midpoint, sampling.time = sampling.time) # not the same as in excel - rounding?!
 
 #
-# MISSING PARTS ARE HANDLED BY process_rn() AND CAN BE TAKEN BACK FROM THERE EASILY
+# MISSING PARTS ARE HANDLED BY process_ra() AND CAN BE TAKEN BACK FROM THERE EASILY
 #
 
-# efficiency - THIS IS COVERED BY final_rn()
+# efficiency - THIS IS COVERED BY final_ra()
 detector.eff.223 <- eff$mean[eff$detector==detector & eff$isotope==223]
 detector.eff.223.sd <- eff$sd[eff$detector==detector & eff$isotope==223]
 detector.eff.224 <- eff$mean[eff$detector==detector & eff$isotope==224]
 detector.eff.224.sd <- eff$sd[eff$detector==detector & eff$isotope==224]
 effic <- (((detector.eff.223*2)*(CPM219-cc.219))^2*0.01) / (1+((detector.eff.223*2)*(CPM219-cc.219))*0.01) # very minor difference from excel, when copying the efficiency value
 
-# Final - THIS IS COVERED BY final_rn()
+# Final - THIS IS COVERED BY final_ra()
 detector.blank.220 <- blk$mean[blk$detector==detector & blk$isotope==224]
 
 final.220 <- corr.220-effic-detector.blank.220

@@ -1,6 +1,6 @@
-# calculates thos parameter of the count 1 sheet that need input of efficiency, blanks and fltration volume
-# other parameters calculates in count 1 sheet are supplied as a dataframe (pro), the output of process_rn()
-final_rn <- function(eff,
+# calculates those parameter of the count 1 sheet that need input of efficiency, blanks and filtration volume
+# other parameters calculates in count 1 sheet are supplied as a dataframe (pro), the output of process_ra()
+final_ra <- function(eff,
                      blk,
                      pro,
                      filtration_volume_L
@@ -33,11 +33,11 @@ final_rn <- function(eff,
                     err.dpm.220per100L = err.dpm.220per100L) )
 }
 
-source("functions/read_rn.R")
+source("functions/read_ra.R")
 source("functions/summarise_efficiency.R")
 source("functions/summarise_blank.R")
-source("functions/process_rn.R")
-final_rn(eff = summarise_efficiency(list.files("data/AL557/Standards/", full.names = TRUE)),
+source("functions/process_ra.R")
+final_ra(eff = summarise_efficiency(list.files("data/AL557/Standards/", full.names = TRUE)),
          blk = summarise_blank(list.files("data/AL557/Count1/", full.names = TRUE)),
-         pro = process_rn(read_rn(file = "data/AL557/Count1/050621_1grey_St3.txt")),
+         pro = process_ra(read_ra(file = "data/AL557/Count1/050621_1grey_St3.txt")),
          filtration_volume_L <- 200)
