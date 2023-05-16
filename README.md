@@ -1,8 +1,8 @@
-Rrrn
+Rrra
 ================
 David Kaiser
 
-# Rrrn
+## intro
 
 R toolbox for processing of Radium data.
 

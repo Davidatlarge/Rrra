@@ -1,5 +1,5 @@
 ---
-title: "Rrrn"
+title: "Rrra"
 author: "David Kaiser"
 output: github_document
 ---
@@ -9,7 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 sapply(list.files("functions/", full.names = T), source)
 ```
 
-# Rrrn
+## intro
 R toolbox for processing of Radium data.
 
 ## read data from machine output file
