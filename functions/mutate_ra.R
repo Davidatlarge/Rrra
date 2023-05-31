@@ -1,9 +1,10 @@
 # calculates those parameter of the count 1 sheet that need input of efficiency, blanks and filtration volume
 # other parameters calculated in count 1 sheet are supplied as a dataframe (pro), the output of process_ra()
-final_ra <- function(eff,
-                     blk,
-                     pro,
-                     filtration_volume_L
+mutate_ra <- function(eff,
+                      blk,
+                      pro,
+                      filtration_volume_L,
+                      merged.output = TRUE # should the data frame pro be merged to the output of this function
 ) {
   # efficiency
   detector.eff.223 <- eff$mean[eff$detector==pro$detector & eff$isotope==223]
@@ -33,28 +34,33 @@ final_ra <- function(eff,
   err.dpm.219per100L <- sqrt( (err.dpm.219/filtration_volume_L)^2 + (dpm.219*filtration_volume_L*0.03/filtration_volume_L^2)^2 ) * 100
   
   # output
-  return(data.frame(file = sub(".*[\\\\|/]", "", pro$file),
-                    effic = effic,
-                    final.220 = final.220,
-                    err.final.220 = err.final.220,
-                    dpm.220 = dpm.220,
-                    err.dpm.220 = err.dpm.220,
-                    dpm.220per100L = dpm.220per100L,
-                    err.dpm.220per100L = err.dpm.220per100L,
-                    qm = qm, 
-                    final.219 = final.219,
-                    err.final.219 = err.final.219,
-                    dpm.219 = dpm.219,
-                    err.dpm.219 = err.dpm.219,
-                    dpm.219per100L = dpm.219per100L,
-                    err.dpm.219per100L = err.dpm.219per100L) )
+  final <- data.frame(file = sub(".*[\\\\|/]", "", pro$file),
+                      effic = effic,
+                      final.220 = final.220,
+                      err.final.220 = err.final.220,
+                      dpm.220 = dpm.220,
+                      err.dpm.220 = err.dpm.220,
+                      dpm.220per100L = dpm.220per100L,
+                      err.dpm.220per100L = err.dpm.220per100L,
+                      qm = qm, 
+                      final.219 = final.219,
+                      err.final.219 = err.final.219,
+                      dpm.219 = dpm.219,
+                      err.dpm.219 = err.dpm.219,
+                      dpm.219per100L = dpm.219per100L,
+                      err.dpm.219per100L = err.dpm.219per100L) 
+  if(merged.output) {
+    final <- merge(pro, final)
+  }
+  
+  return(final)
 }
 
 # source("functions/read_ra.R")
 # source("functions/summarise_efficiency.R")
 # source("functions/summarise_blank.R")
 # source("functions/process_ra.R")
-# t( final_ra(eff = summarise_efficiency(list.files("data/AL557/Standards/", full.names = TRUE)),
+# t( mutate_ra(eff = summarise_efficiency(list.files("data/AL557/Standards/", full.names = TRUE)),
 #             blk = summarise_blank(list.files("data/AL557/Count1/", full.names = TRUE)),
 #             pro = process_ra(read_ra(file = "data/test_case1/050621_1grey_St3.txt")),
 #             filtration_volume_L <- 200)
