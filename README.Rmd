@@ -9,14 +9,17 @@ knitr::opts_chunk$set(echo = TRUE)
 sapply(list.files("functions/", full.names = T), source)
 ```
 
+
+
 ## intro
-R toolbox for processing of Radium data.
+R toolbox for processing of Radium data from RaDeCC.
 
 ## read data from machine output file
 `read_ra()` returns a list with all the content of the file
 
 ```{r}
-read_ra(file = "data/AL557/Count1/050621_1grey_St10_blank.txt")
+Ra <- read_ra(file = "data/test_case1/050621_1grey_St3.txt")
+Ra
 ```
 
 ## get summaries of blank values and detector efficiency 
@@ -24,13 +27,15 @@ read_ra(file = "data/AL557/Count1/050621_1grey_St10_blank.txt")
 
 ```{r}
 files <- list.files("data/AL557/", recursive = TRUE, full.names = TRUE, pattern = ".txt$")
-summarise_blank(files)
+blk <- summarise_blank(files)
+blk
 ```
 
 A warning will be printed if less than 3 values are used in a summary.
 
 ```{r}
-summarise_efficiency(files)
+eff <- summarise_efficiency(files)
+eff
 ```
 
 `summarise_efficiency()` also calls `calculate_efficiency()` to calculate efficiency.
@@ -43,22 +48,85 @@ calculate_efficiency(Ra = read_ra("data/AL557/Standards/050621_1orange_223Rastan
 `process_ra()` takes the output of `read_ra()` and returns values that can be derived solely from the data in one measurement result file.
 
 ```{r}
-t( process_ra(read_ra("data/AL557/Count1/050621_1grey_St3.txt")) ) # transpose for better readability here
+pro <- process_ra(Ra)
+t( pro ) # transpose for better readability here
 ```
 
-`final_ra()` takes the output of `summarise_efficiency()`, `summarise_blank()`, `process_ra()`, as well as additional metadata to return more derived values.
+`mutate_ra()` takes the output of `summarise_efficiency()`, `summarise_blank()`, `process_ra()`, as well as additional metadata to return more derived values. With the argmuent `merged.output = TRUE` (the default) the new values will be added to the output of `process_ra()` (which then could be overwritten; or the functions could be nested).
+
+```{r} 
+final <- mutate_ra(eff = eff, 
+                   blk = blk,
+                   pro = pro,
+                   filtration_volume_L = 200.5, 
+                   merged.output = TRUE)
+t( # transpose for better readability here
+  final[!(names(final)%in%names(pro))] # show only those columns not in the output of process_ra()
+   )
+```
+
+# example
+We use the blank and efficiency values created above. 
+And we add two required metadata (will be done differently later). 
 
 ```{r}
-t( final_ra(eff = summarise_efficiency(list.files("data/AL557/Standards/", full.names = TRUE)), # transpose for better readability here
-            blk = summarise_blank(list.files("data/AL557/Count1/", full.names = TRUE)),
-            pro = process_ra(read_ra(file = "data/AL557/Count1/050621_1grey_St3.txt")),
-            filtration_volume_L <- 200) )
+sampling.time <- as.POSIXct("2021-06-04 10:29:00")
+filtration_volume_L <- 200.5
 ```
+
+Two count measurements of one sample are (generally) needed for a result.
+Here we load and process the values "manually" but this will change later.
+
+```{r}
+# count 1
+c1 <- read_ra("data/test_case1/050621_1grey_St3.txt")
+c1 <- process_ra(c1)
+c1 <- mutate_ra(eff = eff, blk = blk, pro = c1, filtration_volume_L = filtration_volume_L)
+
+# count 2
+c2 <- read_ra("data/test_case1/130621_green_St3_2.txt")
+c2 <- process_ra(c2)
+c2 <- mutate_ra(eff = eff, blk = blk, pro = c2, filtration_volume_L = filtration_volume_L)
+```
+
+To correct for the ingrowth of decaying 228Th we estimate the amount of 228Th on the fiber using `onFiber_228Th` (the name is pretty bad and I'll change that).
+
+```{r}
+onFiber228Th <- onFiber_228Th(midpoint.1 = c1$midpoint, 
+                              midpoint.2 = c2$midpoint, 
+                              dpm.220per100L.1 = c1$dpm.220per100L,
+                              dpm.220per100L.2 = c2$dpm.220per100L)
+onFiber228Th
+```
+
+The results, can then be calculated from the processed values of the first measurement/count using `results_Ra()`.
+
+```{r}
+results <- results_Ra(c1, sampling.time, onFiber228Th)
+results
+```
+
+Relevant metadata can easily be added.
+
+```{r}
+results$file <- c1$file
+results$sampling.time <- sampling.time
+results
+```
+
 
 # next
 - reading meta data
+  - require filename to include metadata (i.e. filtration volume and sampling time):
+  - ID.+_tYYYYMMDDHHMMSS_v100-0L_dorange_ssample.txt
 - finding, sorting and combing multiple measurements (count x) of one sample
 - workflow optimization
+  - only accept files with summary
+  - write a repare_radecc() function to deal with missing summaries
+  - change input into process_ra() because probably not all machine output files look like the one's we have and so our read_ra() will not work for all to produce the Ra object
+  - exclude detector from internal processing but make a workflow for external filtering
+  - make the results calculation for each count independent of the others
+    - also important if the different counts were measured by different detectors
 - code clean-up 
   - get rid of unnecessary ()
   - remove objects not needed downstream

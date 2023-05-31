@@ -4,53 +4,183 @@ David Kaiser
 
 ## intro
 
-R toolbox for processing of Radium data.
+R toolbox for processing of Radium data from RaDeCC.
 
 ## read data from machine output file
 
 `read_ra()` returns a list with all the content of the file
 
 ``` r
-read_ra(file = "data/AL557/Count1/050621_1grey_St10_blank.txt")
+Ra <- read_ra(file = "data/test_case1/050621_1grey_St3.txt")
+Ra
 ```
 
     ## $filename
-    ## [1] "050621_1grey_St10_blank.txt"
+    ## [1] "050621_1grey_St3.txt"
     ## 
     ## $original.filename
-    ## [1] "050621_1grey_blank4.txt"
+    ## [1] "050621_1grey_St3.txt"
     ## 
     ## $type
-    ## [1] "blank"
+    ## [1] "sample"
     ## 
     ## $detector
     ## [1] "grey"
     ## 
     ## $start.time
-    ## [1] "2021-06-05 20:37:33 CEST"
+    ## [1] "2021-06-05 09:52:46 CEST"
     ## 
     ## $end.time
-    ## [1] "2021-06-05 20:50:40 CEST"
+    ## [1] "2021-06-05 12:17:29 CEST"
     ## 
     ## $count.summary
     ##       Runtime CPM219 Cnt219 CPM220 Cnt220 CPMTot CntTot
-    ## value   13.12      0      0      0      0  1.525     20
+    ## value  144.72  0.304     44  3.262    472 11.284   1633
     ## 
     ## $counts
-    ##    Runtime CPM219 Cnt219 CPM220 Cnt220 CPMTot CntTot
-    ## 1     0.98      0      0      0      0  0.000      0
-    ## 2     2.00      0      0      0      0  1.000      2
-    ## 3     3.00      0      0      0      0  1.000      1
-    ## 4     4.00      0      0      0      0  1.500      3
-    ## 5     5.00      0      0      0      0  1.600      2
-    ## 6     6.02      0      0      0      0  1.330      0
-    ## 7     7.00      0      0      0      0  1.429      2
-    ## 8     8.00      0      0      0      0  1.500      2
-    ## 9     9.00      0      0      0      0  1.444      1
-    ## 10   10.00      0      0      0      0  1.600      3
-    ## 11   11.00      0      0      0      0  1.636      2
-    ## 12   12.02      0      0      0      0  1.664      2
-    ## 13   13.02      0      0      0      0  1.536      0
+    ##     Runtime CPM219 Cnt219 CPM220 Cnt220 CPMTot CntTot
+    ## 1      1.00  0.000      0  6.000      6 21.000     21
+    ## 2      2.00  0.000      0  4.000      2 14.000      7
+    ## 3      3.00  0.000      0  2.667      0 10.667      4
+    ## 4      4.00  0.250      1  2.250      1 10.750     11
+    ## 5      5.00  0.600      2  3.400      8 12.600     20
+    ## 6      6.00  0.500      0  3.333      3 12.167     10
+    ## 7      7.00  0.429      0  2.857      0 11.571      8
+    ## 8      8.00  0.375      0  2.750      2 11.000      7
+    ## 9      9.02  0.333      0  2.662      2 10.314      5
+    ## 10    10.02  0.399      1  2.696      3 10.383     11
+    ## 11    11.00  0.364      0  2.545      1  9.818      4
+    ## 12    12.00  0.417      1  2.417      1  9.667      8
+    ## 13    13.00  0.385      0  2.385      2  9.231      4
+    ## 14    14.02  0.357      0  2.212      0  8.989      6
+    ## 15    15.02  0.333      0  2.198      2  8.923      8
+    ## 16    16.00  0.313      0  2.188      2  8.938      9
+    ## 17    17.02  0.294      0  2.116      1  8.697      5
+    ## 18    18.02  0.278      0  2.220      4  8.714      9
+    ## 19    19.02  0.263      0  2.577      9  9.150     17
+    ## 20    20.02  0.250      0  2.998     11  9.842     23
+    ## 21    21.02  0.238      0  2.998      3  9.992     13
+    ## 22    22.02  0.227      0  2.952      2  9.856      7
+    ## 23    23.02  0.261      1  2.867      1  9.732      7
+    ## 24    24.02  0.250      0  2.956      5  9.910     14
+    ## 25    25.02  0.240      0  2.998      4 10.073     14
+    ## 26    26.02  0.231      0  2.921      1  9.840      4
+    ## 27    27.03  0.259      1  2.922      3  9.914     12
+    ## 28    28.03  0.250      0  2.961      4  9.952     11
+    ## 29    29.02  0.276      1  2.964      3 10.063     13
+    ## 30    30.02  0.267      0  3.032      5 10.261     16
+    ## 31    31.02  0.258      0  3.063      4 10.317     12
+    ## 32    32.03  0.281      1  2.997      1 10.271      9
+    ## 33    33.03  0.333      2  3.058      5 10.323     12
+    ## 34    34.03  0.323      0  2.997      1 10.167      5
+    ## 35    35.02  0.314      0  3.056      5 10.424     19
+    ## 36    36.03  0.305      0  3.025      2 10.352      8
+    ## 37    37.03  0.324      1  3.051      4 10.450     14
+    ## 38    38.03  0.316      0  2.997      1 10.254      3
+    ## 39    39.03  0.307      0  3.023      4 10.273     11
+    ## 40    40.03  0.300      0  3.022      3 10.266     10
+    ## 41    41.03  0.317      1  3.046      4 10.333     13
+    ## 42    42.05  0.309      0  3.092      5 10.392     13
+    ## 43    43.05  0.325      1  3.066      2 10.383     10
+    ## 44    44.03  0.318      0  2.998      0 10.265      5
+    ## 45    45.03  0.311      0  3.042      5 10.348     14
+    ## 46    46.03  0.304      0  3.041      3 10.384     12
+    ## 47    47.05  0.319      1  3.039      3 10.414     12
+    ## 48    48.05  0.312      0  2.997      1 10.343      7
+    ## 49    49.03  0.306      0  2.957      1 10.258      6
+    ## 50    50.03  0.320      1  2.978      4 10.313     13
+    ## 51    51.05  0.313      0  2.938      1 10.245      7
+    ## 52    52.05  0.307      0  2.901      1 10.183      7
+    ## 53    53.05  0.320      1  3.016      9 10.405     22
+    ## 54    54.05  0.315      0  3.034      4 10.472     14
+    ## 55    55.05  0.327      1  3.034      3 10.500     12
+    ## 56    56.05  0.321      0  2.997      1 10.455      8
+    ## 57    57.05  0.316      0  2.962      1 10.412      8
+    ## 58    58.07  0.310      0  2.979      4 10.454     13
+    ## 59    59.05  0.305      0  2.930      0 10.364      5
+    ## 60    60.05  0.316      1  2.981      6 10.491     18
+    ## 61    61.05  0.328      1  2.981      3 10.516     12
+    ## 62    62.05  0.322      0  2.965      2 10.492      9
+    ## 63    63.07  0.317      0  2.997      5 10.529     13
+    ## 64    64.07  0.328      1  2.981      2 10.489      8
+    ## 65    65.07  0.338      1  2.997      4 10.558     15
+    ## 66    66.07  0.333      0  3.073      8 10.701     20
+    ## 67    68.07  0.338      0  3.041      2 10.593      5
+    ## 68    69.07  0.333      0  3.041      3 10.627     13
+    ## 69    70.07  0.328      0  3.026      2 10.576      7
+    ## 70    71.07  0.324      0  3.025      3 10.553      9
+    ## 71    72.07  0.319      0  2.997      1 10.518      8
+    ## 72    73.07  0.328      1  3.025      5 10.593     16
+    ## 73    74.08  0.324      0  3.037      4 10.596     11
+    ## 74    75.07  0.320      0  3.024      2 10.551      7
+    ## 75    76.07  0.316      0  3.011      2 10.557     11
+    ## 76    77.08  0.311      0  3.010      3 10.508      7
+    ## 77    78.08  0.307      0  3.022      4 10.540     13
+    ## 78    79.07  0.316      1  3.035      4 10.586     14
+    ## 79    80.08  0.312      0  3.059      5 10.601     12
+    ## 80    81.08  0.308      0  3.034      1 10.508      3
+    ## 81    82.08  0.305      0  3.034      3 10.514     11
+    ## 82    83.07  0.301      0  3.046      4 10.594     17
+    ## 83    84.08  0.309      1  3.045      3 10.632     14
+    ## 84    85.08  0.306      0  3.091      7 10.731     19
+    ## 85    86.08  0.302      0  3.125      6 10.757     13
+    ## 86    87.08  0.299      0  3.146      5 10.783     13
+    ## 87    88.08  0.295      0  3.133      2 10.797     12
+    ## 88    89.08  0.292      0  3.143      4 10.810     12
+    ## 89    90.08  0.289      0  3.197      8 10.912     20
+    ## 90    91.08  0.285      0  3.173      1 10.869      7
+    ## 91    92.08  0.282      0  3.149      1 10.838      8
+    ## 92    93.10  0.279      0  3.147      3 10.827     10
+    ## 93    94.08  0.287      1  3.189      7 10.905     18
+    ## 94    95.08  0.284      0  3.208      5 10.906     11
+    ## 95    96.08  0.281      0  3.185      1 10.876      8
+    ## 96    97.10  0.278      0  3.172      2 10.875     11
+    ## 97    98.10  0.285      1  3.160      2 10.866     10
+    ## 98    99.10  0.283      0  3.138      1 10.817      6
+    ## 99   100.10  0.280      0  3.147      4 10.819     11
+    ## 100  101.10  0.287      1  3.155      4 10.851     14
+    ## 101  102.08  0.284      0  3.144      2 10.834      9
+    ## 102  103.10  0.281      0  3.152      4 10.854     13
+    ## 103  104.10  0.279      0  3.151      3 10.826      8
+    ## 104  105.10  0.285      1  3.178      6 10.875     16
+    ## 105  106.10  0.302      2  3.205      6 10.943     18
+    ## 106  107.12  0.299      0  3.211      4 10.969     14
+    ## 107  108.10  0.305      1  3.219      4 10.999     14
+    ## 108  109.10  0.302      0  3.226      4 11.017     13
+    ## 109  110.10  0.318      2  3.233      4 11.063     16
+    ## 110  111.10  0.324      1  3.267      7 11.098     15
+    ## 111  112.12  0.330      1  3.282      5 11.149     17
+    ## 112  113.12  0.327      0  3.271      2 11.130      9
+    ## 113  114.10  0.324      0  3.287      5 11.192     18
+    ## 114  115.10  0.321      0  3.258      0 11.129      4
+    ## 115  116.12  0.319      0  3.238      1 11.066      4
+    ## 116  117.12  0.316      0  3.270      7 11.126     18
+    ## 117  118.12  0.322      1  3.268      3 11.158     15
+    ## 118  119.12  0.319      0  3.291      6 11.216     18
+    ## 119  120.12  0.333      2  3.263      0 11.181      7
+    ## 120  121.12  0.330      0  3.261      3 11.196     13
+    ## 121  122.12  0.328      0  3.259      3 11.178      9
+    ## 122  123.12  0.325      0  3.281      6 11.193     13
+    ## 123  124.12  0.322      0  3.295      5 11.231     16
+    ## 124  125.12  0.320      0  3.277      1 11.198      7
+    ## 125  126.13  0.317      0  3.266      2 11.195     11
+    ## 126  127.13  0.315      0  3.256      2 11.169      8
+    ## 127  128.12  0.312      0  3.270      5 11.185     13
+    ## 128  129.12  0.310      0  3.284      5 11.207     14
+    ## 129  130.12  0.307      0  3.266      1 11.159      5
+    ## 130  131.13  0.305      0  3.279      5 11.202     17
+    ## 131  132.13  0.303      0  3.269      2 11.201     11
+    ## 132  133.15  0.300      0  3.267      3 11.205     12
+    ## 133  134.15  0.298      0  3.302      8 11.249     17
+    ## 134  135.13  0.303      1  3.293      2 11.241     10
+    ## 135  136.13  0.301      0  3.298      4 11.254     13
+    ## 136  137.13  0.299      0  3.281      1 11.215      6
+    ## 137  138.15  0.297      0  3.272      2 11.198      9
+    ## 138  139.15  0.295      0  3.277      4 11.204     12
+    ## 139  140.15  0.293      0  3.282      4 11.224     14
+    ## 140  141.13  0.291      0  3.288      4 11.245     14
+    ## 141  142.15  0.302      2  3.285      3 11.263     14
+    ## 142  144.15  0.305      0  3.260      0 11.280     11
 
 ## get summaries of blank values and detector efficiency
 
@@ -62,7 +192,8 @@ when `summarise = TRUE` (the default), or a table of all values if
 
 ``` r
 files <- list.files("data/AL557/", recursive = TRUE, full.names = TRUE, pattern = ".txt$")
-summarise_blank(files)
+blk <- summarise_blank(files)
+blk
 ```
 
     ##    detector isotope        mean         sd  n
@@ -82,10 +213,14 @@ summarise_blank(files)
 A warning will be printed if less than 3 values are used in a summary.
 
 ``` r
-summarise_efficiency(files)
+eff <- summarise_efficiency(files)
 ```
 
     ## some efficiencies have been calculated with fewer than 3 standard values
+
+``` r
+eff
+```
 
     ##   detector isotope       mean          sd n
     ## 1     blue     223 0.16719556          NA 1
@@ -115,7 +250,8 @@ calculate_efficiency(Ra = read_ra("data/AL557/Standards/050621_1orange_223Rastan
 can be derived solely from the data in one measurement result file.
 
 ``` r
-t( process_ra(read_ra("data/AL557/Count1/050621_1grey_St3.txt")) ) # transpose for better readability here
+pro <- process_ra(Ra)
+t( pro ) # transpose for better readability here
 ```
 
     ##               [,1]                  
@@ -150,37 +286,124 @@ t( process_ra(read_ra("data/AL557/Count1/050621_1grey_St3.txt")) ) # transpose f
     ## corr.219      "0.299345"            
     ## err.corr.219  "0.04587034"
 
-`final_ra()` takes the output of `summarise_efficiency()`,
+`mutate_ra()` takes the output of `summarise_efficiency()`,
 `summarise_blank()`, `process_ra()`, as well as additional metadata to
-return more derived values.
+return more derived values. With the argmuent `merged.output = TRUE`
+(the default) the new values will be added to the output of
+`process_ra()` (which then could be overwritten; or the functions could
+be nested).
 
 ``` r
-t( final_ra(eff = summarise_efficiency(list.files("data/AL557/Standards/", full.names = TRUE)), # transpose for better readability here
-            blk = summarise_blank(list.files("data/AL557/Count1/", full.names = TRUE)),
-            pro = process_ra(read_ra(file = "data/AL557/Count1/050621_1grey_St3.txt")),
-            filtration_volume_L <- 200) )
+final <- mutate_ra(eff = eff, 
+                   blk = blk,
+                   pro = pro,
+                   filtration_volume_L = 200.5, 
+                   merged.output = TRUE)
+t( # transpose for better readability here
+  final[!(names(final)%in%names(pro))] # show only those columns not in the output of process_ra()
+   )
 ```
 
-    ## some efficiencies have been calculated with fewer than 3 standard values
+    ##                            [,1]
+    ## effic              9.133376e-05
+    ## final.220          2.589414e+00
+    ## err.final.220      1.601756e-01
+    ## dpm.220            3.305285e+01
+    ## err.dpm.220        2.103184e+00
+    ## dpm.220per100L     1.648521e+01
+    ## err.dpm.220per100L 1.159708e+00
+    ## qm                 4.602499e-02
+    ## final.219          2.326242e-01
+    ## err.final.219      4.605183e-02
+    ## dpm.219            1.456578e+00
+    ## err.dpm.219        3.167287e-01
+    ## dpm.219per100L     7.264727e-01
+    ## err.dpm.219per100L 1.594657e-01
 
-    ## some blank summaries have been calculated with fewer than 3 values
+# example
 
-    ##                    [,1]                  
-    ## file               "050621_1grey_St3.txt"
-    ## effic              "9.133376e-05"        
-    ## final.220          "2.595914"            
-    ## err.final.220      "0.1601756"           
-    ## dpm.220            "33.13582"            
-    ## err.dpm.220        "2.103475"            
-    ## dpm.220per100L     "16.56791"            
-    ## err.dpm.220per100L "1.16327"
+We use the blank and efficiency values created above. And we add two
+required metadata (will be done differently later).
+
+``` r
+sampling.time <- as.POSIXct("2021-06-04 10:29:00")
+filtration_volume_L <- 200.5
+```
+
+Two count measurements of one sample are (generally) needed for a
+result. Here we load and process the values “manually” but this will
+change later.
+
+``` r
+# count 1
+c1 <- read_ra("data/test_case1/050621_1grey_St3.txt")
+c1 <- process_ra(c1)
+c1 <- mutate_ra(eff = eff, blk = blk, pro = c1, filtration_volume_L = filtration_volume_L)
+
+# count 2
+c2 <- read_ra("data/test_case1/130621_green_St3_2.txt")
+c2 <- process_ra(c2)
+c2 <- mutate_ra(eff = eff, blk = blk, pro = c2, filtration_volume_L = filtration_volume_L)
+```
+
+To correct for the ingrowth of decaying 228Th we estimate the amount of
+228Th on the fiber using `onFiber_228Th` (the name is pretty bad and
+I’ll change that).
+
+``` r
+onFiber228Th <- onFiber_228Th(midpoint.1 = c1$midpoint, 
+                              midpoint.2 = c2$midpoint, 
+                              dpm.220per100L.1 = c1$dpm.220per100L,
+                              dpm.220per100L.2 = c2$dpm.220per100L)
+onFiber228Th
+```
+
+    ## [1] 10.86429
+
+The results, can then be calculated from the processed values of the
+first measurement/count using `results_Ra()`.
+
+``` r
+results <- results_Ra(c1, sampling.time, onFiber228Th)
+results
+```
+
+    ##   Ra224.DPMper100L err.Ra224.DPMper100L Ra223.DPMper100L err.Ra223.DPMper100L
+    ## 1         6.890526            0.4847375        0.7220402            0.1584928
+
+Relevant metadata can easily be added.
+
+``` r
+results$file <- c1$file
+results$sampling.time <- sampling.time
+results
+```
+
+    ##   Ra224.DPMper100L err.Ra224.DPMper100L Ra223.DPMper100L err.Ra223.DPMper100L
+    ## 1         6.890526            0.4847375        0.7220402            0.1584928
+    ##                   file       sampling.time
+    ## 1 050621_1grey_St3.txt 2021-06-04 10:29:00
 
 # next
 
 - reading meta data
+  - require filename to include metadata (i.e. filtration volume and
+    sampling time):
+  - ID.+\_tYYYYMMDDHHMMSS_v100-0L_dorange_ssample.txt
 - finding, sorting and combing multiple measurements (count x) of one
   sample
 - workflow optimization
+  - only accept files with summary
+  - write a repare_radecc() function to deal with missing summaries
+  - change input into process_ra() because probably not all machine
+    output files look like the one’s we have and so our read_ra() will
+    not work for all to produce the Ra object
+  - exclude detector from internal processing but make a workflow for
+    external filtering
+  - make the results calculation for each count independent of the
+    others
+    - also important if the different counts were measured by different
+      detectors
 - code clean-up
   - get rid of unnecessary ()
   - remove objects not needed downstream
