@@ -1,6 +1,8 @@
 # function to read .txt files that contain output of Ra analysis
-read_ra <- function(file) {
-
+read_ra <- function(file, # a RaDeCC output file
+                    detectors = c("orange","blue","grey","green") # quoted possible names of detectors in the file name
+) {
+  
   # read file by lines
   filelines <- readLines(file)
   
@@ -11,10 +13,10 @@ read_ra <- function(file) {
   # extract the measurement type
   source("functions/identify_type.R")
   type <- identify_type(file)
-
+  
   # extract detector from file name
   detector <- sub(".*(orange|blue|grey|green).*", "\\1", file)
-  if(!(detector %in% c("orange","blue","grey","green"))) {warning("detector not found")}
+  if(!(detector %in% detectors)) {warning("detector not found")}
   
   # extract start time
   start.time <- filelines[grep("Start Time", filelines)]
@@ -37,7 +39,7 @@ read_ra <- function(file) {
   if(any(grepl("Count Summary", filelines))) {
     count.summary <- filelines[grep("Count Summary", filelines)+c(2,3)]
     count.summary <- as.data.frame(t(data.frame(row.names = unlist(strsplit(count.summary[1], split = " +")),
-                                  value = as.numeric(unlist(strsplit(count.summary[2], split = " +"))))))
+                                                value = as.numeric(unlist(strsplit(count.summary[2], split = " +"))))))
   } else {
     count.summary <- NA
     warning(paste0("Count Summary not available in ", file,". Returning NA"))
@@ -63,16 +65,16 @@ read_ra <- function(file) {
     counts <- NA
     warning(paste0("No counts available in ", file,". Returning NA"))
   }
-    
-    # return result
-    return(list(filename = filename,
-                original.filename = original.filename,
-                type = type,
-                detector = detector,
-                start.time = start.time,
-                end.time = end.time,
-                count.summary = count.summary,
-                counts = counts))
+  
+  # return result
+  return(list(filename = filename,
+              original.filename = original.filename,
+              type = type,
+              detector = detector,
+              start.time = start.time,
+              end.time = end.time,
+              count.summary = count.summary,
+              counts = counts))
   
 }
 
