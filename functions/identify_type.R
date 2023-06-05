@@ -1,17 +1,22 @@
 # function to identify if the data in a file is from
 # a sample, a sample blank, a standard, or a standard blank
 # look for this information in the file name 
-identify_type <- function(string # generally a file name
+# args blank.id and standard.id take quoted strings that identify blanks and standards in the file name
+# multiple options can be passed using the | character, e.g. "standard|std"
+# the seach for th IDs in the file name is case-insensitive, so "STD" and "Std" will both work
+identify_type <- function(string, # generally a file name
+                          blank.id = "blank", 
+                          standard.id = "standard|std" 
 ) {
   # remove leading path from file names
   string <- sub(".*[\\\\|/]", "", string)
   # identify type of sample in filename
-  if(grepl("standard|std", string, ignore.case = TRUE) &
-     grepl("blank", string, ignore.case = TRUE)) {
+  if(grepl(standard.id, string, ignore.case = TRUE) &
+     grepl(blank.id, string, ignore.case = TRUE)) {
     type <- "standard_blank"
-  } else if(grepl("standard|std", string, ignore.case = TRUE)) {
+  } else if(grepl(standard.id, string, ignore.case = TRUE)) {
     type <- "standard"
-  } else if(grepl("blank", string, ignore.case = TRUE)) {
+  } else if(grepl(blank.id, string, ignore.case = TRUE)) {
     type <- "blank"
   } else {
     type <- "sample"
