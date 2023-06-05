@@ -2,16 +2,27 @@ Rrra
 ================
 David Kaiser
 
+how come sampling time only comes in at results_ra()? why use half life
+of 224Ra when correcting for 228Th decay ingrowth? pass the standard
+efficiencies from summarise_efficiency() to internal
+calculate_efficiency() in process_ra() add warning if midpoint cannot be
+calculated due to missing or wrong times
+
 ## intro
 
 R toolbox for processing of Radium data from RaDeCC.
 
 ## read data from machine output file
 
-`read_ra()` returns a list with all the content of the file
+`read_ra()` returns a list with all the content of the file. The
+detector names that should be part of the file name can be supplied as
+an argument `detectors`. The date format for the Start Time and Stop
+Time in the file is supplied in strptime-style via `date.format`.
 
 ``` r
-Ra <- read_ra(file = "data/test_case1/050621_1grey_St3.txt")
+Ra <- read_ra(file = "data/test_case1/050621_1grey_St3.txt",
+              detectors = c("orange","blue","grey","green"), # these are current default values in the function
+              date.format = "%m/%d/%Y") # these are current default values in the function
 Ra
 ```
 
@@ -188,7 +199,9 @@ Ra
 names, call `identify_type()` to identify blanks and standards,
 respectively, call `read_ra()` to read the results, and return a summary
 when `summarise = TRUE` (the default), or a table of all values if
-`summarise = FALSE`.
+`summarise = FALSE`. `identify_type()` looks in the file name for
+strings; current defaults are `blank.id = "blank"` and
+`standard.id = "standard|std"`.
 
 ``` r
 files <- list.files("data/AL557/", recursive = TRUE, full.names = TRUE, pattern = ".txt$")
@@ -232,7 +245,7 @@ eff
     ## 7     grey     224 0.07834163 0.014916630 5
     ## 8   orange     224 0.07367752 0.005927695 3
 
-`summarise_efficiency()` also calls `calculate_efficiency()` to
+`summarise_efficiency()` internally calls `calculate_efficiency()` to
 calculate efficiency.
 
 ``` r
@@ -388,8 +401,8 @@ results
 
 - reading meta data
   - require filename to include metadata (i.e. filtration volume and
-    sampling time):
-  - ID.+\_tYYYYMMDDHHMMSS_v100-0L_dorange_ssample.txt
+    sampling time)?:
+    - ID.+\_tYYYYMMDDHHMMSS_v100-0L_dorange_ssample.txt
 - finding, sorting and combing multiple measurements (count x) of one
   sample
 - workflow optimization
