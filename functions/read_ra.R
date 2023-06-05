@@ -1,6 +1,7 @@
 # function to read .txt files that contain output of Ra analysis
 read_ra <- function(file, # a RaDeCC output file
-                    detectors = c("orange","blue","grey","green") # quoted possible names of detectors in the file name
+                    detectors = c("orange","blue","grey","green"), # quoted possible names of detectors in the file name
+                    date.format = "%m/%d/%Y" # the strptime style format of ONLY the DATE part of Start Time in the 2nd line of the RaDeCC .txt file 
 ) {
   
   # read file by lines
@@ -22,14 +23,15 @@ read_ra <- function(file, # a RaDeCC output file
   start.time <- filelines[grep("Start Time", filelines)]
   start.time <- sub("Start Time ", "", start.time)
   start.time <- gsub(" +", "T", start.time)
-  start.time <- as.POSIXct(start.time, format = "%m/%d/%YT%H:%M:%S")
+  start.time <- as.POSIXct(start.time, format = paste0(date.format,"T%H:%M:%S"))
+  if(is.na(start.time)) warning("Could not find Start Time in the provided date format. Returning NA.")
   
   # extract stop time
   if(any(grepl("Stopped", filelines))) {
     end.time <- filelines[grep("Stopped", filelines)]
     end.time <- sub(".*Stopped ", "", end.time)
     end.time <- gsub(" +", "T", end.time)
-    end.time <- as.POSIXct(end.time, format = "%m/%d/%YT%H:%M:%S")
+    end.time <- as.POSIXct(end.time, format = paste0(date.format,"T%H:%M:%S"))
   } else {
     end.time <- NA
     warning(paste0("Stop Time not available in ", file,". Returning NA"))
