@@ -1,8 +1,8 @@
 # calculate detector efficiencies
 # Burts Efficiency Calc. 
 calculate_efficiency <- function(Ra, # a list object produced by read_ra()
-                                 dpm.223.std = 9.94,
-                                 dpm.224.std = 12.1 
+                                 dpm.223.std = 9.94, # Personal Comm Walter Geibert (AWI)
+                                 dpm.224.std = 12.1 # Personal Comm Walter Geibert (AWI)
 ) {
   if(!grepl("standard$", Ra$type, ignore.case = TRUE)) {
     stop("the supplied data seems not to be from a standard")
