@@ -6,6 +6,7 @@
 # then aggregates the results (unless summarise ==FALSE)
 # it is possible to supply only one file name 
 summarise_efficiency <- function(files,
+                                 standard.id = "standard|std", # string to identify standards in the file name
                                  summarise = TRUE # should the results of all files be summarised, if FALSE returns a table of individual efficiencies
 ) {
   # load functions
@@ -14,7 +15,7 @@ summarise_efficiency <- function(files,
   source("functions/read_ra.R")
   
   # find relevant files
-  types <- unlist(lapply(files, function(x) identify_type(x)))
+  types <- unlist(lapply(files, function(x) identify_type(x, standard.id = standard.id)))
   standards <- files[which(grepl("standard$", types))]
   if(length(standards)<1) {stop("no standards indentified in input files")}
   

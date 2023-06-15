@@ -6,12 +6,13 @@
 # assigns the results so that only 220 counts are used with Ra224 and 219 counts with Ra223
 # it is possible to supply only one file name 
 summarise_blank <- function(files,
+                            blank.id = "blank", # string to identify blanks in the file name
                             summarise = TRUE # should the results of all files be summarised, if FALSE returns a table of individual blanks
 ) {
   source("functions/read_ra.R")
   source("functions/identify_type.R")
   
-  types <- unlist(lapply(files, function(x) identify_type(x)))
+  types <- unlist(lapply(files, function(x) identify_type(x, blank.id = blank.id)))
   blanks <- files[which(grepl("blank$", types))]
   if(length(blanks)<1) {stop("no blanks indentified in input files")}
   
