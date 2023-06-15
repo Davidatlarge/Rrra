@@ -1,33 +1,28 @@
-# ADD WARNINGS EVERYWHERE!!!  
-sapply(list.files("functions/", full.names = T), source)
+# process samples - change function name
+# This function processes all samples in a folder 
+# It returns the output of results_ra() for each sample, provided there are 2 counts for the sample
+# Alternatively for all samples and all counts, i.e. all individual RaDeCC measurements, 
+# the output of mutate_ra() can be returned
 
-## get summaries of blank values and detector efficiency 
-files <- list.files("data/AL557/", recursive = TRUE, full.names = TRUE, pattern = ".txt$")
-blk <- summarise_blank(files)
-eff <- summarise_efficiency(files)
-
-## metadata
-# how this is supplied must be discussed
-meta <- data.frame(id = c("St2", "St3"),
-                   sampling.time = as.POSIXct(c("2021-06-05 09:43:00", "2021-06-05 09:52:00")),
-                   volume = c(200.4, 200.5))
-
-## process samples - change function name
-process_samples <- function(files,
+process_samples <- function(files, # files = "data/test_case1/"
                             blk,
                             eff,
                             meta, # depending on meta data input way, this can be removed
+                            sample.id.pattern, # this could/should be changed; the sample identification is an importnat issue
                             halfway = FALSE # change argument name
 ) {
+  # source required functions
+  sapply(list.files("functions/", full.names = T), source) # reduce this to what is actually needed
+  
   # find samples - eventually look in the same folder as the blk and eff
-  samples <- list.files(files, pattern = ".txt$", full.names = TRUE) # this should eventually be the same as 'files' above
-  types <- unlist(lapply(samples, function(x) identify_type(x)))
-  samples <- samples[which(grepl("sample$", types))]
+  types <- unlist(lapply(files, function(x) identify_type(x)))
+  samples <- files[which(grepl("sample$", types))]
   
   spl <- data.frame()
   for(sample in samples) {
     current <- read_ra(sample)
-    sample.id <- sub(".*_(St[1-9]{1}).+", "\\1", current$filename) # THIS NEEDS TO BE CHANGED; VERY SITUATIONAL
+    sample.id <- sub(paste0(".*_(", sample.id.pattern, ").+"), 
+                     "\\1", current$filename) # will change depending on sample identification
     sampling.time <- meta$sampling.time[meta$id==sample.id]
     volume <- meta$volume[meta$id==sample.id]
     
@@ -74,6 +69,18 @@ process_samples <- function(files,
   return(res)
 }
 
-process_samples(files = "data/test_case1/",
-                blk = blk, eff = eff, meta = meta,
-                halfway = TRUE)
+# # example
+# sapply(list.files("functions/", full.names = T), source)
+# 
+# files <- list.files("data/AL557/", recursive = TRUE, full.names = TRUE, pattern = ".txt$")
+# blk <- summarise_blank(files)
+# eff <- summarise_efficiency(files)
+# 
+# meta <- data.frame(id = c("St2", "St3"),
+#                    sampling.time = as.POSIXct(c("2021-06-05 09:43:00", "2021-06-05 09:52:00")),
+#                    volume = c(200.4, 200.5))
+# samples <- list.files("data/test_case1/", pattern = ".txt$", full.names = TRUE)
+# process_samples(files = samples,
+#                 blk = blk, eff = eff, meta = meta,
+#                 sample.id.pattern = "St[1-9]{1}", 
+#                 halfway = FALSE)
