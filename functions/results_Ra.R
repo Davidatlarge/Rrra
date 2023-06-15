@@ -1,10 +1,13 @@
 # calculate results
 # the DMP values corrected for the ingrowth of decaying 228Th are the final concentration values of 224Ra and 224Ra
-results_Ra <- function(count1, # the output of process_Ra() [once the outputs of final_Ra() are included, which I will do after 2023-05-31]
-                       sampling.time,
-                       onFiber228Th,
+results_Ra <- function(count1, # the output of mutate_ra()
+                       sampling.time, # as POSIX time
+                       onFiber228Th, # numeric, preferably the output of onFiber_228Th()
                        estimate.227Ac = 0.05 # a constant, will be subtracted from 219 concentration before dividing that by the decay factor
 ) {
+  if(is.na(count1$midpoint)) stop("The midpoint of count1 is NA, cannot calculate results.")
+  if(sampling.time>count1$midpoint) stop("sampling.time must be earlier than the midpoint of count1")
+  
   # calculate final 220
   decay.factor224 <- exp(-log(2) / 3.66 * as.numeric(count1$midpoint-sampling.time) ) # 3.66 is the half life of 224Ra in days
   dpm.220per100L.decay.corrected <- (count1$dpm.220per100L-onFiber228Th) / decay.factor224 # quite different from excel, small errors compound here; could be due to differences in eff and/or blk
