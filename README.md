@@ -2,17 +2,11 @@ Rrra
 ================
 David Kaiser
 
-how come sampling time only comes in at results_ra()? why use half life
-of 224Ra when correcting for 228Th decay ingrowth? pass the standard
-efficiencies from summarise_efficiency() to internal
-calculate_efficiency() in process_ra() add warning if midpoint cannot be
-calculated due to missing or wrong times
-
 ## intro
 
 R toolbox for processing of Radium data from RaDeCC.
 
-## read data from machine output file
+## read data from RaDeCC output file
 
 `read_ra()` returns a list with all the content of the file. The
 detector names that should be part of the file name can be supplied as
@@ -333,13 +327,13 @@ t( # transpose for better readability here
     ## dpm.219per100L     7.264727e-01
     ## err.dpm.219per100L 1.594657e-01
 
-# example
+# example with a single sample
 
 We use the blank and efficiency values created above. And we add two
 required metadata (will be done differently later).
 
 ``` r
-sampling.time <- as.POSIXct("2021-06-04 10:29:00")
+sampling.time <- as.POSIXct("2021-06-05 09:52:00")
 filtration_volume_L <- 200.5
 ```
 
@@ -382,7 +376,7 @@ results
 ```
 
     ##   Ra224.DPMper100L err.Ra224.DPMper100L Ra223.DPMper100L err.Ra223.DPMper100L
-    ## 1         6.890526            0.4847375        0.7220402            0.1584928
+    ## 1         8.896966            0.6258874          0.78359            0.1720034
 
 Relevant metadata can easily be added.
 
@@ -393,30 +387,108 @@ results
 ```
 
     ##   Ra224.DPMper100L err.Ra224.DPMper100L Ra223.DPMper100L err.Ra223.DPMper100L
-    ## 1         6.890526            0.4847375        0.7220402            0.1584928
+    ## 1         8.896966            0.6258874          0.78359            0.1720034
     ##                   file       sampling.time
-    ## 1 050621_1grey_St3.txt 2021-06-04 10:29:00
+    ## 1 050621_1grey_St3.txt 2021-06-05 09:52:00
+
+# example with multiple samples
+
+To avoid the need to run the example workflow above for each sample,
+`process_samples()` loops over all sample files in a file list. The
+function accepts a list of file paths, and internally calls
+`identify_type()` to see which files are samples, so that also other
+files, like blanks and standards can be stored in the same folder. The
+file list can thus be the same as that used in `summarise_blank()` and
+`summarise_efficiency()` (that’s not the case in this example, though).
+Samples are then read with `read_ra()` and processed with `process_ra()`
+and `mutate_ra()`, and the output bound into a data frame. This
+dataframe can be returned by setting the argument `halfway = TRUE`. The
+target output however is a data frame of the output from `result_ra()`
+for each sample. Therefore, the function identifies samples from the
+file name using the argument `sample.id.pattern`, which (currently)
+accepts a regex pattern of the sample name. Measurements with the same
+sample ID are then processed in groups with `onFiber_228Th()` and
+`result_ra()`.
+
+In this example we have 2 samples with two measurements/counts each.
+(Note: the function also works when only counts of one sample are
+supplied, and then returns the result of only that sample)
+
+``` r
+samples <- list.files("data/test_case1/", pattern = ".txt$", full.names = TRUE)
+samples
+```
+
+    ## [1] "data/test_case1/050621_1grey_St3.txt"   
+    ## [2] "data/test_case1/050621_2blue_St2.txt"   
+    ## [3] "data/test_case1/130621_green_St3_2.txt" 
+    ## [4] "data/test_case1/130621_orange_St2_2.txt"
+
+The samples are named “St2” and “St3”. So to identify these we use
+`sample.id.pattern = "St[1-9]{1}"`.
+
+For now, we supply the required metadata, i.e. filtration volume and
+sampling time, in a data frame that will be passed to the argument
+`meta`. The column names must be exact, because `process_samples()`
+looks for those.
+
+``` r
+meta <- data.frame(id = c("St2", "St3"),
+                   sampling.time = as.POSIXct(c("2021-06-05 09:43:00", "2021-06-05 09:52:00")),
+                   volume = c(200.4, 200.5))
+meta
+```
+
+    ##    id       sampling.time volume
+    ## 1 St2 2021-06-05 09:43:00  200.4
+    ## 2 St3 2021-06-05 09:52:00  200.5
+
+Now we can run the example.
+
+``` r
+process_samples(files = samples,
+                blk = blk, eff = eff, meta = meta,
+                sample.id.pattern = "St[1-9]{1}", 
+                halfway = FALSE)
+```
+
+    ##   Ra224.DPMper100L err.Ra224.DPMper100L Ra223.DPMper100L err.Ra223.DPMper100L
+    ## 1        62.020833            3.8307499         1.836055                   NA
+    ## 2         8.896966            0.6258874         0.783590            0.1720034
+    ##    id
+    ## 1 St2
+    ## 2 St3
 
 # next
 
 - reading meta data
+  - sample id (name) is an important issue
   - require filename to include metadata (i.e. filtration volume and
     sampling time)?:
     - ID.+\_tYYYYMMDDHHMMSS_v100-0L_dorange_ssample.txt
-- finding, sorting and combing multiple measurements (count x) of one
-  sample
-- workflow optimization
-  - only accept files with summary
-  - write a repare_radecc() function to deal with missing summaries
-  - change input into process_ra() because probably not all machine
-    output files look like the one’s we have and so our read_ra() will
-    not work for all to produce the Ra object
-  - exclude detector from internal processing but make a workflow for
-    external filtering
-  - make the results calculation for each count independent of the
-    others
-    - also important if the different counts were measured by different
-      detectors
+  - or supply meta data table where the file names are linked to
+    relevant meta data
+    - if we do that then it might be better to include the detector in
+      that table as well
+- add warnings
+- error handling
+- change function and argument names to something nicer
+- make decay_factor() accept half life directly
+- only accept files with summary
+- write a repare_radecc() function to deal with missing summaries
+- pass the standard efficiencies from summarise_efficiency() to internal
+  calculate_efficiency()
+- in process_ra() add warning if midpoint cannot be calculated due to
+  missing or wrong times
+- should eff (and blk) be done independent of detector and then looped
+  for detectors? does the machine always have a number of different
+  detectors?
 - code clean-up
   - get rid of unnecessary ()
   - remove objects not needed downstream
+  - unify the use of . and \_ in function and argument names
+
+# probably dumb questions
+
+- how come sampling time only comes in at results_ra()?
+- why use half life of 224Ra when correcting for 228Th decay ingrowth?
