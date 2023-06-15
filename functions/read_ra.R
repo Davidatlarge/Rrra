@@ -16,7 +16,8 @@ read_ra <- function(file, # a RaDeCC output file
   type <- identify_type(file)
   
   # extract detector from file name
-  detector <- sub(".*(orange|blue|grey|green).*", "\\1", file)
+  detector <- paste(detectors, collapse = "|")
+  detector <- sub(paste0(".*(",detector,").*"), "\\1", file)
   if(!(detector %in% detectors)) {warning("detector not found")}
   
   # extract start time
@@ -32,6 +33,7 @@ read_ra <- function(file, # a RaDeCC output file
     end.time <- sub(".*Stopped ", "", end.time)
     end.time <- gsub(" +", "T", end.time)
     end.time <- as.POSIXct(end.time, format = paste0(date.format,"T%H:%M:%S"))
+    if(is.na(start.time)) warning("Could not find Stop Time in the provided date format. Returning NA.")
   } else {
     end.time <- NA
     warning(paste0("Stop Time not available in ", file,". Returning NA"))
@@ -42,6 +44,7 @@ read_ra <- function(file, # a RaDeCC output file
     count.summary <- filelines[grep("Count Summary", filelines)+c(2,3)]
     count.summary <- as.data.frame(t(data.frame(row.names = unlist(strsplit(count.summary[1], split = " +")),
                                                 value = as.numeric(unlist(strsplit(count.summary[2], split = " +"))))))
+    rownames(count.summary) <- NULL
   } else {
     count.summary <- NA
     warning(paste0("Count Summary not available in ", file,". Returning NA"))
@@ -49,12 +52,13 @@ read_ra <- function(file, # a RaDeCC output file
   
   # extract raw count data
   if(any(grep("Runtime", filelines)) & 
-     length(filelines)>grep("Runtime", filelines)[1]) {
+     length(filelines)>grep("Runtime", filelines)[1] # to see that there is at least one row after the header
+     ) {
     startline <- grep("Runtime", filelines)[1]
-    if(!is.na(end.time)) {
-      endline <- grep("Stopped", filelines)[1]-1
+    if(any(grep("Stopped", filelines))) { # if the run was properly stopped
+      endline <- grep("Stopped", filelines)[1]-1 # last raw data row is above the line containing "Stopped"
     } else {
-      endline <- length(filelines)
+      endline <- length(filelines) # else, last raw data row is the last row
     }
     countlines <- filelines[startline:endline]
     countlines <- countlines[!grepl("\"", countlines)]
@@ -80,4 +84,4 @@ read_ra <- function(file, # a RaDeCC output file
   
 }
 
-#read_ra(file = "data/AL557/Count1/050621_1grey_St10_blank.txt")
+#read_ra(file = "data/test_case1/050621_1grey_St3.txt", date.format = "%m/%d/%Y")
