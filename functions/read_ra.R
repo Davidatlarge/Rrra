@@ -3,6 +3,7 @@ read_ra <- function(file, # a RaDeCC output file
                     detectors = c("orange","blue","grey","green"), # quoted possible names of detectors in the file name
                     date.format = "%m/%d/%Y" # the strptime style format of ONLY the DATE part of Start Time in the 2nd line of the RaDeCC .txt file 
 ) {
+  source("functions/identify_type.R")
   
   # read file by lines
   filelines <- readLines(file)
@@ -12,7 +13,6 @@ read_ra <- function(file, # a RaDeCC output file
   filename <- sub(".*[\\\\|/]", "", file)
   
   # extract the measurement type
-  source("functions/identify_type.R")
   type <- identify_type(file)
   
   # extract detector from file name
@@ -21,27 +21,27 @@ read_ra <- function(file, # a RaDeCC output file
   if(!(detector %in% detectors)
      ) {
     detector <- NA
-    warning(paste0("Detector not found in ", filename, ". Returning NA."))
+    warning(paste0("Detector not found in ", filename, ". Returning NA.\n Have you supplied the correct potential detector name?"))
     }
   
   # extract start time
-  start.time <- filelines[grep("Start Time", filelines)]
+  start.time <- grep("Start Time", filelines, value = TRUE)
   start.time <- sub("Start Time ", "", start.time)
   start.time <- gsub(" +", "T", start.time)
   start.time <- as.POSIXct(start.time, format = paste0(date.format,"T%H:%M:%S"))
-  if(is.na(start.time)) warning("Could not find Start Time in the provided date format. Returning NA.")
+  if(is.na(start.time)) warning(paste0("Could not find Start Time in the provided date format. Returning NA.\n The supplied format is '", date.format, "'. In the file it is '", grep("Start Time", filelines, value = TRUE),"'."))
   
   # extract stop time
   if(any(grepl("Stopped", filelines))
      ) {
-    end.time <- filelines[grep("Stopped", filelines)]
+    end.time <- grep("Stopped", filelines, value = TRUE)
     end.time <- sub(".*Stopped ", "", end.time)
     end.time <- gsub(" +", "T", end.time)
     end.time <- as.POSIXct(end.time, format = paste0(date.format,"T%H:%M:%S"))
-    if(is.na(start.time)) warning("Could not find Stop Time in the provided date format. Returning NA.")
+    if(is.na(end.time)) warning(paste0("Could not find Stop Time in the provided date format. Returning NA.\n The supplied format is '", date.format, "'. In the file it is '", grep("Stopped", filelines, value = TRUE),"'."))
   } else {
     end.time <- NA
-    warning(paste0("Stop Time not available in ", file,". Returning NA"))
+    warning(paste0("Stop Time not available in file:", file,". Returning NA."))
   }
   
   # extract Count Summary
@@ -89,4 +89,4 @@ read_ra <- function(file, # a RaDeCC output file
   
 }
 
-read_ra(file = "data/test_case1/050621_1grey_St3.txt", detectors = c("orange","blue","grey","green"), date.format = "%m/%d/%Y")
+#read_ra(file = "data/test_case1/050621_1grey_St3.txt", detectors = c("orange","blue","grey","green"), date.format = "%m/%d/%Y")

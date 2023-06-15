@@ -2,7 +2,14 @@
 
 process_ra <- function(Ra # a list object produced by read_ra()
 ) {
+  source("functions/read_ra.R")
   source("functions/counting_midpoint.R")
+  
+  # make sure the Ra has all required values
+  if(is.na(Ra$start.time)) stop(paste0("Start Time missing in the Ra with file name '", Ra$filename, "'."))
+  if(is.na(Ra["count.summary"])) stop(paste0("Summary missing in the Ra with file name '", Ra$filename, "'."))
+  if(any(is.na( c(Ra$count.summary$Runtime, Ra$count.summary$CPMTot, Ra$count.summary$CPM220, Ra$count.summary$CPM219) ))) {
+    stop(paste0("Summary missing important values in the Ra with file name '", Ra$filename, "'.")) }
   
   # extract variables
   start.time <- Ra$start.time
@@ -82,5 +89,4 @@ process_ra <- function(Ra # a list object produced by read_ra()
                     err.corr.219 = err.corr.219) )
 }
 
-# source("functions/read_ra.R")
-# process_ra(read_ra("data/AL557/Count1/050621_1grey_St3.txt"))
+#process_ra(Ra = read_ra("data/test_case1/050621_1grey_St3.txt"))

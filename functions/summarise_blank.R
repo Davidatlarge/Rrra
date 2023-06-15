@@ -9,6 +9,8 @@ summarise_blank <- function(files,
                             summarise = TRUE # should the results of all files be summarised, if FALSE returns a table of individual blanks
 ) {
   source("functions/read_ra.R")
+  source("functions/identify_type.R")
+  
   types <- unlist(lapply(files, function(x) identify_type(x)))
   blanks <- files[which(grepl("blank$", types))]
   if(length(blanks)<1) {stop("no blanks indentified in input files")}

@@ -6,16 +6,28 @@ mutate_ra <- function(eff,
                       filtration_volume_L,
                       merged.output = TRUE # should the data frame pro be merged to the output of this function
 ) {
+  # check if the pro detector is present in eff and blk
+  if(!(pro$detector%in%eff$detector)) stop("The 'eff' object has no efficiency values for the detector of the 'pro' object")
+  if(!(pro$detector%in%blk$detector)) stop("The 'blk' object has no blank values for the detector of the 'pro' object")
+  
   # efficiency
-  detector.eff.223 <- eff$mean[eff$detector==pro$detector & eff$isotope==223]
-  detector.eff.223.sd <- eff$sd[eff$detector==pro$detector & eff$isotope==223]
-  detector.eff.224 <- eff$mean[eff$detector==pro$detector & eff$isotope==224]
-  detector.eff.224.sd <- eff$sd[eff$detector==pro$detector & eff$isotope==224]
+  eff <- eff[eff$detector==pro$detector,]
+  if(any(!c(223,224)%in%eff$isotope) | any(is.na(eff$mean))) {
+    stop("Efficiency values for Ra isotope 223 and/or 224 missing in the 'eff' object for the required detector")
+  } 
+  detector.eff.223 <- eff$mean[eff$isotope==223]
+  detector.eff.223.sd <- eff$sd[eff$isotope==223]
+  detector.eff.224 <- eff$mean[eff$isotope==224]
+  detector.eff.224.sd <- eff$sd[eff$isotope==224]
   
   effic <- (((detector.eff.223*2)*(pro$CPM219-pro$cc.219))^2*0.01) / (1+((detector.eff.223*2)*(pro$CPM219-pro$cc.219))*0.01) # very minor difference from excel, when copying the efficiency value
   
   # Final 220 values
-  detector.blank.220 <- blk$mean[blk$detector==pro$detector & blk$isotope==224]
+  blk <- blk[blk$detector==pro$detector,]
+  if(!(224%in%blk$isotope) | is.na(blk$mean[blk$isotope==224])) {
+    stop("Blank values for Ra isotope 224 missing in the 'blk' object for the required detector")
+  } 
+ detector.blank.220 <- blk$mean[blk$isotope==224]
   
   final.220 <- pro$corr.220-effic-detector.blank.220
   err.final.220 <- pro$err.corr.220
@@ -63,5 +75,5 @@ mutate_ra <- function(eff,
 # t( mutate_ra(eff = summarise_efficiency(list.files("data/AL557/Standards/", full.names = TRUE)),
 #             blk = summarise_blank(list.files("data/AL557/Count1/", full.names = TRUE)),
 #             pro = process_ra(read_ra(file = "data/test_case1/050621_1grey_St3.txt")),
-#             filtration_volume_L <- 200)
+#             filtration_volume_L = 200)
 # )
