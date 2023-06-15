@@ -18,7 +18,11 @@ read_ra <- function(file, # a RaDeCC output file
   # extract detector from file name
   detector <- paste(detectors, collapse = "|")
   detector <- sub(paste0(".*(",detector,").*"), "\\1", file)
-  if(!(detector %in% detectors)) {warning("detector not found")}
+  if(!(detector %in% detectors)
+     ) {
+    detector <- NA
+    warning(paste0("Detector not found in ", filename, ". Returning NA."))
+    }
   
   # extract start time
   start.time <- filelines[grep("Start Time", filelines)]
@@ -28,7 +32,8 @@ read_ra <- function(file, # a RaDeCC output file
   if(is.na(start.time)) warning("Could not find Start Time in the provided date format. Returning NA.")
   
   # extract stop time
-  if(any(grepl("Stopped", filelines))) {
+  if(any(grepl("Stopped", filelines))
+     ) {
     end.time <- filelines[grep("Stopped", filelines)]
     end.time <- sub(".*Stopped ", "", end.time)
     end.time <- gsub(" +", "T", end.time)
@@ -84,4 +89,4 @@ read_ra <- function(file, # a RaDeCC output file
   
 }
 
-#read_ra(file = "data/test_case1/050621_1grey_St3.txt", date.format = "%m/%d/%Y")
+read_ra(file = "data/test_case1/050621_1grey_St3.txt", detectors = c("orange","blue","grey","green"), date.format = "%m/%d/%Y")
