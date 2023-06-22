@@ -7,40 +7,53 @@
 process_samples <- function(files, # files = "data/test_case1/"
                             blk,
                             eff,
+                            blank.id = "blank", # is is for identify type to inherit, but it is a bit clumsy seeing that the strings were already given to summarise.blank() and summarise.efficiency()
+                            standard.id = "standard|std",
                             meta, # depending on meta data input way, this can be removed
-                            sample.id.pattern, # this could/should be changed; the sample identification is an importnat issue
-                            halfway = FALSE # change argument name
+                            halfway = FALSE, # change argument name
+                            verbose = TRUE
 ) {
-  # source required functions
-  sapply(list.files("functions/", full.names = T), source) # reduce this to what is actually needed
+  # check if input is correct
+  if(any(!grepl("id|sampling.time|volume", colnames(meta))) |
+     !inherits(meta$id, "character") | 
+     !inherits(meta$sampling.time, "POSIXct") |
+     !inherits(meta$volume, "numeric") 
+     ) {
+    stop("'meta' must have columns 'id' as character, 'sampling.time' as POSIXct and, 'volume' as numeric (in liters)")
+  }
   
-  # find samples - eventually look in the same folder as the blk and eff
-  types <- unlist(lapply(files, function(x) identify_type(x)))
+  # find samples
+  types <- unlist(lapply(files, function(x) identify_type(x, blank.id = blank.id, standard.id = standard.id)))
   samples <- files[which(grepl("sample$", types))]
+  if(length(samples)<1) {stop("no samples indentified in input files")}
   
+  # process and mutate all samples
   spl <- data.frame()
   for(sample in samples) {
     current <- read_ra(sample)
-    sample.id <- sub(paste0(".*_(", sample.id.pattern, ").+"), 
-                     "\\1", current$filename) # will change depending on sample identification
-    sampling.time <- meta$sampling.time[meta$id==sample.id]
-    volume <- meta$volume[meta$id==sample.id]
-    
-    # process the sample
-    current <- process_ra(current)
-    current <- mutate_ra(eff = eff, blk = blk, 
-                         pro = current, 
-                         filtration_volume_L = volume)
-    # add metadata - depending on how metadata is supplied, this could be changed
-    current$volume <- volume
-    current$sampling.time <- sampling.time
-    current$id <- sample.id
-    
-    spl <- rbind(spl, current)
+    sample.id <- sub(".*(St[^_|.txt]*).*", "\\1", current$filename, ignore.case = TRUE)
+    if(sum(meta$id==sample.id)==1) {
+      sampling.time <- meta$sampling.time[meta$id==sample.id]
+      volume <- meta$volume[meta$id==sample.id]
+      
+      # process the sample
+      current <- process_ra(current)
+      current <- mutate_ra(eff = eff, blk = blk, 
+                           pro = current, 
+                           filtration_volume_L = volume)
+      # add metadata
+      current$volume <- volume
+      current$sampling.time <- sampling.time
+      current$id <- sample.id
+      
+      spl <- rbind(spl, current)
+    } else {
+      warning(paste0("no unique sample with id '", sample.id, "' found in meta. Skipping file '", current$filename, "'"))
+    }
   }
   
   ## return intermediate results if required
-  if(halfway) { # change argment name
+  if(halfway) { # change argument name
     return(spl)
     stop()
   }
@@ -55,6 +68,10 @@ process_samples <- function(files, # files = "data/test_case1/"
     current <- spl[[i]]
     current$count <- rank(current$start.time)
     current <- current[order(current$count),]
+    if(verbose) {
+      message(paste0("in sample '", current$id[1], "'"))
+      message(paste0(capture.output(current[c("count", "sampling.time", "midpoint", "file")]), collapse = "\n"))
+    }
     onFiber228Th <- onFiber_228Th(midpoint.1 = current$midpoint[1], 
                                   midpoint.2 = current$midpoint[2], 
                                   dpm.220per100L.1 = current$dpm.220per100L[1],
