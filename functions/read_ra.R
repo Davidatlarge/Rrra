@@ -3,8 +3,6 @@ read_ra <- function(file, # a RaDeCC output file
                     detectors = c("orange","blue","grey","green"), # quoted possible names of detectors in the file name
                     date.format = "%m/%d/%Y" # the strptime style format of ONLY the DATE part of Start Time in the 2nd line of the RaDeCC .txt file 
 ) {
-  source("functions/identify_type.R")
-  
   # read file by lines
   filelines <- readLines(file)
   
@@ -19,21 +17,24 @@ read_ra <- function(file, # a RaDeCC output file
   detector <- paste(detectors, collapse = "|")
   detector <- sub(paste0(".*(",detector,").*"), "\\1", file)
   if(!(detector %in% detectors)
-     ) {
+  ) {
     detector <- NA
     warning(paste0("Detector not found in ", filename, ". Returning NA.\n Have you supplied the correct potential detector name?"))
-    }
+  }
   
   # extract start time
   start.time <- grep("Start Time", filelines, value = TRUE)
   start.time <- sub("Start Time ", "", start.time)
   start.time <- gsub(" +", "T", start.time)
   start.time <- as.POSIXct(start.time, format = paste0(date.format,"T%H:%M:%S"))
-  if(is.na(start.time)) warning(paste0("Could not find Start Time in the provided date format. Returning NA.\n The supplied format is '", date.format, "'. In the file it is '", grep("Start Time", filelines, value = TRUE),"'."))
+  if(is.na(start.time)
+  ) {
+    warning(paste0("Could not find Start Time in the provided date format. Returning NA.\n The supplied format is '", date.format, "'. In the file it is '", grep("Start Time", filelines, value = TRUE),"'."))
+  }
   
   # extract stop time
   if(any(grepl("Stopped", filelines))
-     ) {
+  ) {
     end.time <- grep("Stopped", filelines, value = TRUE)
     end.time <- sub(".*Stopped ", "", end.time)
     end.time <- gsub(" +", "T", end.time)
@@ -58,7 +59,7 @@ read_ra <- function(file, # a RaDeCC output file
   # extract raw count data
   if(any(grep("Runtime", filelines)) & 
      length(filelines)>grep("Runtime", filelines)[1] # to see that there is at least one row after the header
-     ) {
+  ) {
     startline <- grep("Runtime", filelines)[1]
     if(any(grep("Stopped", filelines))) { # if the run was properly stopped
       endline <- grep("Stopped", filelines)[1]-1 # last raw data row is above the line containing "Stopped"
