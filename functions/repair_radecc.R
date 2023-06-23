@@ -1,9 +1,7 @@
 # function to repair elements of a Ra object that were not present in the file passed to read_ra()
-# the functionality could also be placed in read_ra()
-# as a prompt (like the one in the example) or as an argument repair=TRUE
 repair_radecc <- function(Ra) {
   if(is.na(Ra$end.time)) Ra$end.time <- Ra$start.time + max(Ra$counts$Runtime)*60
-  if(is.na(Ra$count.summary)) {
+  if(any(is.na(Ra$count.summary))) {
     Ra$count.summary <- data.frame(Runtime = max(Ra$counts$Runtime),
                                    CPM219 = mean(Ra$counts$CPM219),
                                    Cnt219 = sum(Ra$counts$Cnt219),
