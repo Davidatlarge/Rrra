@@ -30,31 +30,30 @@ process_samples <- function(files, # files = "data/test_case1/"
   # process and mutate all samples
   spl <- data.frame()
   for(sample in samples) {
-    current <- read_ra(sample)
-    sample.id <- sub(".*(St[^_|.txt]*).*", "\\1", current$filename, ignore.case = TRUE)
+    ra <- read_ra(sample)
     if(verbose) {
-      message(paste0("identified sample '", sample.id, "' in file '", current$filename, "'"))
+      message(paste0("identified sample '", ra$id, "' in file '", ra$filename, "'"))
     }
-    if(sum(meta$id==sample.id)==1) {
+    if(sum(meta$id==ra$id)==1) {
       if(verbose) {
-        message(paste0("matching sample '", sample.id, "' with meta data id '", meta$id[meta$id== sample.id], "', with sampling time '", meta$sampling.time[meta$id== sample.id], "' and filtration volume ", meta$volume[meta$id==sample.id], " L"))
+        message(paste0("matching sample '", ra$id, "' with meta data id '", meta$id[meta$id==ra$id], "', with sampling time '", meta$sampling.time[meta$id==ra$id], "' and filtration volume ", meta$volume[meta$id==ra$id], " L"))
       }
-      sampling.time <- meta$sampling.time[meta$id==sample.id]
-      volume <- meta$volume[meta$id==sample.id]
+      sampling.time <- meta$sampling.time[meta$id==ra$id]
+      volume <- meta$volume[meta$id==ra$id]
       
       # process the sample
-      current <- process_ra(current)
-      current <- mutate_ra(eff = eff, blk = blk, 
-                           pro = current, 
+      pro <- process_ra(ra)
+      pro <- mutate_ra(eff = eff, blk = blk, 
+                           pro = pro, 
                            filtration_volume_L = volume)
       # add metadata
-      current$volume <- volume
-      current$sampling.time <- sampling.time
-      current$id <- sample.id
+      pro$volume <- volume
+      pro$sampling.time <- sampling.time
+      pro$id <- ra$id
       
-      spl <- rbind(spl, current)
+      spl <- rbind(spl, pro)
     } else {
-      warning(paste0("no unique sample with id '", sample.id, "' found in meta. Skipping file '", current$filename, "'"))
+      warning(paste0("no unique sample with id '",  ra$id, "' found in meta. Skipping file '", ra$filename, "'"))
     }
   }
   
@@ -81,7 +80,7 @@ process_samples <- function(files, # files = "data/test_case1/"
         message(paste0("in sample '", current$id[1], "'"))
         message(paste0(capture.output(current[c("count", "sampling.time", "midpoint", "file")]), collapse = "\n"))
         if(nrow(current)>2) {
-          message(paste0("more than 2 counts for sample id '", current$id[1], "', skipping file/s '", paste(current$file[3:nrow(current)], collapse="', '"), "'"))
+          message(paste0("more than 2 counts for sample id '", current$id[1], "', ignoring file/s '", paste(current$file[3:nrow(current)], collapse="', '"), "'"))
         }
       }
       onFiber228Th <- onFiber_228Th(midpoint.1 = current$midpoint[1],
