@@ -12,6 +12,7 @@ calculate_efficiency <- function(Ra, # a list object produced by read_ra()
   }
   
 <<<<<<< HEAD
+<<<<<<< HEAD
   if(all(!is.na(Ra$count.summary))) {
     CPM219 <- Ra$count.summary$CPM219
     CPM220 <- Ra$count.summary$CPM220
@@ -40,6 +41,8 @@ calculate_efficiency <- function(Ra, # a list object produced by read_ra()
     warning(paste0("no valid summary in standard of file '", Ra$filename, "', ignoring file"))
   }
 =======
+=======
+>>>>>>> parent of 45e7f2d... accept only Ra objects with valid summaries
   CPM219 <- Ra$count.summary$CPM219
   CPM220 <- Ra$count.summary$CPM220
   CPMTot <- Ra$count.summary$CPMTot
@@ -64,6 +67,9 @@ calculate_efficiency <- function(Ra, # a list object produced by read_ra()
                      eff.220 = eff.220,
                      eff.219 = eff.219) )
   
+<<<<<<< HEAD
+>>>>>>> parent of 45e7f2d... accept only Ra objects with valid summaries
+=======
 >>>>>>> parent of 45e7f2d... accept only Ra objects with valid summaries
 }
 #calculate_efficiency(Ra = read_ra("data/AL557/Standards/050621_1orange_223Rastandard.txt"), standard.id = "standard")
