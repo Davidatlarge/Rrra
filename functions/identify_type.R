@@ -31,9 +31,9 @@ identify_type <- function(string, # generally a file name
   
   # add the isotope number to standards, if any
   if(grepl("standard", type) &
-     grepl("223|224", string)
+     grepl("223|224|228", string)
   ) { 
-    type <- paste0(sub(".*?(?<!\\d)(22[34])(?!\\d).*", "\\1", string, perl=TRUE), "_", type) 
+    type <- paste0(sub(".*?(?<!\\d)(22[348])(?!\\d).*", "\\1", string, perl=TRUE), "_", type) 
   }
   
   return(type)
