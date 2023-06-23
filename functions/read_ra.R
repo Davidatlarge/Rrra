@@ -14,9 +14,6 @@ read_ra <- function(file, # a RaDeCC output file
   # extract sample id
   id <- sub(".*(St[^_|.txt]*).*", "\\1", file, ignore.case = TRUE)
   
-  # extract the measurement type
-  type <- identify_type(file, blank.id = "blank", standard.id = "standard|std")
-  
   # extract detector from file name
   detector <- paste(detectors, collapse = "|")
   detector <- sub(paste0(".*(",detector,").*"), "\\1", file)
@@ -105,7 +102,6 @@ read_ra <- function(file, # a RaDeCC output file
   return(list(filename = filename,
               original.filename = original.filename,
               id = id,
-              type = type,
               detector = detector,
               start.time = start.time,
               end.time = end.time,
