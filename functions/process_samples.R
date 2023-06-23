@@ -18,7 +18,7 @@ process_samples <- function(files, # files = "data/test_case1/"
      !inherits(meta$id, "character") | 
      !inherits(meta$sampling.time, "POSIXct") |
      !inherits(meta$volume, "numeric") 
-     ) {
+  ) {
     stop("'meta' must have columns 'id' as character, 'sampling.time' as POSIXct and, 'volume' as numeric (in liters)")
   }
   
@@ -32,7 +32,13 @@ process_samples <- function(files, # files = "data/test_case1/"
   for(sample in samples) {
     current <- read_ra(sample)
     sample.id <- sub(".*(St[^_|.txt]*).*", "\\1", current$filename, ignore.case = TRUE)
+    if(verbose) {
+      message(paste0("identified sample '", sample.id, "' in file '", current$filename, "'"))
+    }
     if(sum(meta$id==sample.id)==1) {
+      if(verbose) {
+        message(paste0("matching sample '", sample.id, "' with meta data id '", meta$id[meta$id== sample.id], "', with sampling time '", meta$sampling.time[meta$id== sample.id], "' and filtration volume ", meta$volume[meta$id==sample.id], " L"))
+      }
       sampling.time <- meta$sampling.time[meta$id==sample.id]
       volume <- meta$volume[meta$id==sample.id]
       
@@ -63,25 +69,32 @@ process_samples <- function(files, # files = "data/test_case1/"
   
   res <- data.frame()
   for(i in 1:length(spl)) {
-    # calculate 228Th on fiber
-    # warning if n counts != 2; at the moment less than 2 should stop, more than 2 will be ignored
     current <- spl[[i]]
-    current$count <- rank(current$start.time)
-    current <- current[order(current$count),]
-    if(verbose) {
-      message(paste0("in sample '", current$id[1], "'"))
-      message(paste0(capture.output(current[c("count", "sampling.time", "midpoint", "file")]), collapse = "\n"))
+    if(nrow(current)<2) {
+      warning(paste0("less than 2 counts for sample id '", current$id[1], "', skipping file '", current$file[1], "'"))
+    } else {
+      # calculate 228Th on fiber
+      current$count <- rank(current$start.time)
+      current <- current[order(current$count),]
+      current <- current[order(current$count),]
+      if(verbose) { # print the times for each measurement to check if they make sense
+        message(paste0("in sample '", current$id[1], "'"))
+        message(paste0(capture.output(current[c("count", "sampling.time", "midpoint", "file")]), collapse = "\n"))
+        if(nrow(current)>2) {
+          message(paste0("more than 2 counts for sample id '", current$id[1], "', skipping file/s '", paste(current$file[3:nrow(current)], collapse="', '"), "'"))
+        }
+      }
+      onFiber228Th <- onFiber_228Th(midpoint.1 = current$midpoint[1],
+                                    midpoint.2 = current$midpoint[2],
+                                    dpm.220per100L.1 = current$dpm.220per100L[1],
+                                    dpm.220per100L.2 = current$dpm.220per100L[2])
+      
+      # calculate the result
+      result <- results_Ra(current[1,], current$sampling.time[1], onFiber228Th)
+      result$id <- current$id[1]
+      
+      res <- rbind(res, result)
     }
-    onFiber228Th <- onFiber_228Th(midpoint.1 = current$midpoint[1], 
-                                  midpoint.2 = current$midpoint[2], 
-                                  dpm.220per100L.1 = current$dpm.220per100L[1],
-                                  dpm.220per100L.2 = current$dpm.220per100L[2])
-    
-    # calculate the result
-    result <- results_Ra(current[1,], current$sampling.time[1], onFiber228Th)
-    result$id <- current$id[1]
-    
-    res <- rbind(res, result)
   }
   return(res)
 }
