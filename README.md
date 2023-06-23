@@ -39,8 +39,8 @@ Ra
     ## [1] "2021-06-05 12:17:29 CEST"
     ## 
     ## $count.summary
-    ##       Runtime CPM219 Cnt219 CPM220 Cnt220 CPMTot CntTot
-    ## value  144.72  0.304     44  3.262    472 11.284   1633
+    ##   Runtime CPM219 Cnt219 CPM220 Cnt220 CPMTot CntTot
+    ## 1  144.72  0.304     44  3.262    472 11.284   1633
     ## 
     ## $counts
     ##     Runtime CPM219 Cnt219 CPM220 Cnt220 CPMTot CntTot
@@ -295,7 +295,7 @@ t( pro ) # transpose for better readability here
 
 `mutate_ra()` takes the output of `summarise_efficiency()`,
 `summarise_blank()`, `process_ra()`, as well as additional metadata to
-return more derived values. With the argmuent `merged.output = TRUE`
+return more derived values. With the argument `merged.output = TRUE`
 (the default) the new values will be added to the output of
 `process_ra()` (which then could be overwritten; or the functions could
 be nested).
@@ -470,12 +470,19 @@ process_samples(files = samples,
     relevant meta data
     - if we do that then it might be better to include the detector in
       that table as well
+- add necessary arguments to parent functions, e.g. 
+  - inherit `detectors` and `date.format` in read_ra() from parents
+  - identify_type() needs to inherit `blank.id` and `standard.id` -\>
+    DONE
+- should results_Ra() return the decay factors? (currently it doesn’t)
+- should summarise_blank() return values for CPMTot? (currently it does
+  but is not used downstream)
 - add warnings
 - error handling
 - change function and argument names to something nicer
 - make decay_factor() accept half life directly
 - only accept files with summary
-- write a repare_radecc() function to deal with missing summaries
+- write a repair_radecc() function to deal with missing summaries
 - pass the standard efficiencies from summarise_efficiency() to internal
   calculate_efficiency()
 - in process_ra() add warning if midpoint cannot be calculated due to
@@ -487,8 +494,13 @@ process_samples(files = samples,
   - get rid of unnecessary ()
   - remove objects not needed downstream
   - unify the use of . and \_ in function and argument names
+  - remove comments that are notes for the process (e.g. comparisons
+    with excel)
 
 # probably dumb questions
 
 - how come sampling time only comes in at results_ra()?
 - why use half life of 224Ra when correcting for 228Th decay ingrowth?
+  e.g. in onFiber_228Th()
+- in excel sheet blanks cols P and L seem to link to the wrong cols, no
+  downstream effect though.

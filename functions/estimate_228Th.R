@@ -1,6 +1,6 @@
 # Th estimate from measured values of one count, typically the first count
-estimate_228Th <- function(pro # the output of process_ra()
+estimate_228Th <- function(Ra # the output of process_ra()
                            ) {
-  return(sqrt(pro$CPM220*pro$Runtime - pro$cc.220*Ra$Runtime) / (pro$CPM220*Ra$Runtime - pro$cc.220*Ra$Runtime))
+  return(sqrt(Ra$CPM220*Ra$Runtime - Ra$cc.220*Ra$Runtime) / (Ra$CPM220*Ra$Runtime - Ra$cc.220*Ra$Runtime))
 }
 #estimate_228Th(process_ra(read_ra("data/test_case1/050621_1grey_St3.txt")))

@@ -2,6 +2,9 @@
 
 process_ra <- function(Ra # a list object produced by read_ra()
 ) {
+  source("functions/read_ra.R")
+  source("functions/counting_midpoint.R")
+  
   # make sure the Ra has all required values
   if(is.na(Ra$start.time)) stop(paste0("Start Time missing in the Ra with file name '", Ra$filename, "'."))
   if(is.na(Ra["count.summary"])) stop(paste0("Summary missing in the Ra with file name '", Ra$filename, "'."))

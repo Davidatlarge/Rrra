@@ -52,7 +52,7 @@ pro <- process_ra(Ra)
 t( pro ) # transpose for better readability here
 ```
 
-`mutate_ra()` takes the output of `summarise_efficiency()`, `summarise_blank()`, `process_ra()`, as well as additional metadata to return more derived values. With the argmuent `merged.output = TRUE` (the default) the new values will be added to the output of `process_ra()` (which then could be overwritten; or the functions could be nested).
+`mutate_ra()` takes the output of `summarise_efficiency()`, `summarise_blank()`, `process_ra()`, as well as additional metadata to return more derived values. With the argument `merged.output = TRUE` (the default) the new values will be added to the output of `process_ra()` (which then could be overwritten; or the functions could be nested).
 
 ```{r} 
 final <- mutate_ra(eff = eff, 
@@ -132,6 +132,17 @@ samples
 The samples are named "St2" and "St3". 
 So to identify these we use `sample.id.pattern = "St[1-9]{1}"`.
 
+EDIT: the sample ID is now defined as anything including the (last) occurrence of "St" but before the next "_" or before the ".txt" extension. This is case-insensitive.
+
+Examples:  
+`050621_2blue_St2.txt` becomes `St2`  
+`140621_blue_st5-AlkorCruise_2.txt` becomes `st5-AlkorCruise`  
+but  
+`140621_blue_st5_AlkorCruise_2.txt` becomes `st5`  
+`050621_orange_st1cont.txt` becomes `st1cont`
+`050621_st6grey_.txt` becomes `st6grey`
+
+
 For now, we supply the required metadata, i.e. filtration volume and sampling time, in a data frame that will be passed to the argument `meta`.
 The column names must be exact, because `process_samples()` looks for those.
 
@@ -153,26 +164,29 @@ process_samples(files = samples,
 
 
 # next
-- reading meta data
-  - sample id (name) is an important issue
-  - require filename to include metadata (i.e. filtration volume and sampling time)?:
-    - ID.+_tYYYYMMDDHHMMSS_v100-0L_dorange_ssample.txt
-  - or supply meta data table where the file names are linked to relevant meta data
-    - if we do that then it might be better to include the detector in that table as well
-- add warnings 
-- error handling
-- change function and argument names to something nicer
-- make decay_factor() accept half life directly
-- only accept files with summary
-- write a repare_radecc() function to deal with missing summaries
-- pass the standard efficiencies from summarise_efficiency() to internal calculate_efficiency()
-- in process_ra() add warning if midpoint cannot be calculated due to missing or wrong times
-- should eff (and blk) be done independent of detector and then looped for detectors? does the machine always have a number of different detectors?
+- add necessary arguments to parent functions, e.g. 
+  - inherit `detectors` and `date.format` in read_ra() from parents
+    - parents: summarise_blank(), summarise_efficiency(), process_samples()
+  - pass the standard efficiencies from summarise_efficiency() to internal calculate_efficiency()
+  - identify_type() needs to inherit `blank.id` and `standard.id` -> DONE
+
+
+
+
+- data output
+  - which meta data should be part of the output of process_samples()?
+  - should results_Ra() return the decay factors? (currently it doesn't)
+  - should summarise_blank() return values for CPMTot? (currently it does but is not used downstream)
 - code clean-up 
+  - change function and argument names to something nicer
   - get rid of unnecessary ()
   - remove objects not needed downstream
   - unify the use of . and _ in function and argument names
-  
+  - remove comments that are notes for the process (e.g. comparisons with excel)
+- error handling
+
 # probably dumb questions
 - how come sampling time only comes in at results_ra()?
-- why use half life of 224Ra when correcting for 228Th decay ingrowth?
+- why use half life of 224Ra when correcting for 228Th decay ingrowth? e.g. in onFiber_228Th()
+- in excel sheet blanks cols P and L seem to link to the wrong cols, no downstream effect though.
+- it seems that the standards for efficiency are not blank corrected, but there are standard blanks, is this a problem?
