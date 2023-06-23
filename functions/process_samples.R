@@ -96,7 +96,10 @@ process_samples <- function(files,
                                     dpm.220per100L.2 = current$dpm.220per100L[2])
       
       # calculate the result
-      result <- results_Ra(current[1,], current$sampling.time[1], onFiber228Th, estimate.227Ac = estimate.227Ac)
+      result <- results_Ra(count1 = current[1,], 
+                           sampling.time = current$sampling.time[1], 
+                           onFiber228Th = onFiber228Th, 
+                           estimate.227Ac = estimate.227Ac)
       result$id <- current$id[1]
       
       res <- rbind(res, result)
