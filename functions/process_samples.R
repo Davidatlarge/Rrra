@@ -8,7 +8,6 @@ process_samples <- function(files,
                             blk,
                             eff,
                             meta,
-                            detectors, 
                             date.format,
                             blank.id,
                             standard.id,
@@ -28,7 +27,11 @@ process_samples <- function(files,
   # find samples
   types <- unlist(lapply(files, function(x) identify_type(x, blank.id = blank.id, standard.id = standard.id)))
   samples <- files[which(grepl("sample$", types))]
-  if(length(samples)<1) {stop("no samples indentified in input files")}
+  if(length(samples)<1) stop("no samples indentified in input files")
+  
+  # get detector names
+  detectors <- unique(c(blk$detector, eff$detector))
+  if(verbose) message(paste0("identified detectors: '", paste(detectors, collapse = "', '"), "'"))
   
   # process and mutate all samples
   spl <- data.frame()
