@@ -6,6 +6,213 @@ David Kaiser
 
 R toolbox for processing of Radium data from RaDeCC.
 
+## Principal workflow
+
+The main function of this toolbox is `process_samples()`. It accepts a
+list of files that contains the sample but possibly also other
+measurement files, data frames containing values for measurement blanks,
+for detector efficiency values and meta data, as well as some additional
+arguments.
+
+The files for samples, blanks and standards can be located in the same
+folder/path.
+
+``` r
+files <- list.files("data/test_case1/", recursive = TRUE, full.names = TRUE, pattern = ".txt$")
+```
+
+The meta data is supplied in a simple table. A wrapper for a read
+function to access excel sheets will follow soon.
+
+``` r
+meta <- data.frame(id = c("St2", "St3", "St5"),
+                   sampling.time = as.POSIXct(c("2021-06-05 09:43:00", "2021-06-05 09:52:00", "2021-06-15 09:52:00")),
+                   volume = c(200.4, 200.5, 220.5))
+meta
+```
+
+    ##    id       sampling.time volume
+    ## 1 St2 2021-06-05 09:43:00  200.4
+    ## 2 St3 2021-06-05 09:52:00  200.5
+    ## 3 St5 2021-06-15 09:52:00  220.5
+
+Also, we can define those arguments used multiple times.
+
+``` r
+detec = c("orange","blue","grey","green")
+datef = "%m/%d/%Y"
+standard.id = "standard|std"
+blank.id = "blank"
+```
+
+The function `summarise_blank()` finds, processes and summarises files
+containing blank measurements. To identify blanks from the file name, it
+accepts input to the argument `blank.id`, and to properly summarise, it
+accepts a vector of detector names in `detectors`. A warning will be
+printed if less than 3 values are used in a summary.
+
+``` r
+blk <- summarise_blank(files,
+                       date.format = datef, 
+                       detectors = detec, 
+                       blank.id = blank.id, 
+                       summarise = TRUE)
+head(blk)
+```
+
+    ##   detector isotope        mean         sd  n
+    ## 1     blue     223 0.000000000 0.00000000  9
+    ## 2    green     223 0.000000000 0.00000000  6
+    ## 3     grey     223 0.000000000 0.00000000 10
+    ## 4   orange     223 0.000000000 0.00000000 10
+    ## 5     blue     224 0.009555556 0.01435367  9
+    ## 6    green     224 0.010166667 0.01925011  6
+
+Similarly, `summarise_efficiency()` finds and works with files
+containing standard measurements. It additionally takes input for
+`standard.id`, as well as DPM values for the standards used.
+
+``` r
+eff <- summarise_efficiency(files,
+                            date.format = datef, 
+                            detectors = detec,
+                            standard.id = standard.id, 
+                            blank.id = blank.id,
+                            dpm.223.std = 9.94, # Personal Comm Walter Geibert (AWI)
+                            dpm.224.std = 12.1, # Personal Comm Walter Geibert (AWI)
+                            summarise = TRUE)
+```
+
+    ## some efficiencies have been calculated with fewer than 3 standard values
+
+``` r
+head(eff)
+```
+
+    ##   detector isotope       mean         sd n
+    ## 1     blue     223 0.16719556         NA 1
+    ## 2    green     223 0.16171887 0.02599217 2
+    ## 3     grey     223 0.15970596 0.01436684 3
+    ## 4   orange     223 0.15368312 0.02965712 5
+    ## 5     blue     224 0.06786601 0.01166152 2
+    ## 6    green     224 0.07783872         NA 1
+
+Finally, `process_samples()` takes the meta data, output from
+`summarise_blank()` and `summarise_efficiencies()`, as well as the blank
+and standard identifiers and an estimate for 227Ac. The detector names
+are extracted from the inputs to `blk` and `eff`. With `verbose = TRUE`
+comes a stream of information about file processing, printed to the
+console. Setting `halfway = TRUE` returns a table of all the values for
+each sample file that are used for the final calculation of results. All
+these functions also accept the `date.format` to enable the use of files
+created by different system time settings.
+
+``` r
+out <- process_samples(files = files,
+                       blk = blk, 
+                       eff = eff, 
+                       meta = meta,
+                       date.format = datef, 
+                       standard.id = standard.id, 
+                       blank.id = blank.id,
+                       estimate.227Ac = 0.05,
+                       halfway = FALSE, 
+                       verbose = TRUE)
+```
+
+    ## identified detectors: 'blue', 'green', 'grey', 'orange'
+
+    ## identified sample 'St3' in file '050621_1grey_St3.txt'
+
+    ## matching sample 'St3' with meta data id 'St3', with sampling time '2021-06-05 09:52:00' and filtration volume 200.5 L
+
+    ## identified sample 'St2' in file '050621_2blue_St2.txt'
+
+    ## matching sample 'St2' with meta data id 'St2', with sampling time '2021-06-05 09:43:00' and filtration volume 200.4 L
+
+    ## identified sample 'St5' in file '050621_2blue_St5_only_one_count.txt'
+
+    ## matching sample 'St5' with meta data id 'St5', with sampling time '2021-06-15 09:52:00' and filtration volume 220.5 L
+
+    ## identified sample 'st8' in file '050621_blue_st8_not_in_meta.txt'
+
+    ## Warning in process_samples(files = files, blk = blk, eff = eff, meta
+    ## = meta, : no unique sample with id 'st8' found in meta. Skipping file
+    ## '050621_blue_st8_not_in_meta.txt'
+
+    ## identified sample 'St3' in file '130621_green_St3_2.txt'
+
+    ## matching sample 'St3' with meta data id 'St3', with sampling time '2021-06-05 09:52:00' and filtration volume 200.5 L
+
+    ## identified sample 'St3' in file '130621_green_St3_3dummy.txt'
+
+    ## matching sample 'St3' with meta data id 'St3', with sampling time '2021-06-05 09:52:00' and filtration volume 200.5 L
+
+    ## identified sample 'St3' in file '130621_green_St3_4dummy.txt'
+
+    ## matching sample 'St3' with meta data id 'St3', with sampling time '2021-06-05 09:52:00' and filtration volume 200.5 L
+
+    ## identified sample 'St2' in file '130621_orange_St2_2.txt'
+
+    ## matching sample 'St2' with meta data id 'St2', with sampling time '2021-06-05 09:43:00' and filtration volume 200.4 L
+
+    ## identified sample 'St224Ra' in file '290621_orange_St224Ra.txt'
+
+    ## Warning in process_samples(files = files, blk = blk, eff = eff, meta =
+    ## meta, : no unique sample with id 'St224Ra' found in meta. Skipping file
+    ## '290621_orange_St224Ra.txt'
+
+    ## in sample 'St2'
+
+    ##   count       sampling.time            midpoint                    file
+    ## 2     1 2021-06-05 09:43:00 2021-06-05 10:56:05    050621_2blue_St2.txt
+    ## 7     2 2021-06-05 09:43:00 2021-06-13 18:27:51 130621_orange_St2_2.txt
+
+    ## in sample 'St3'
+
+    ##   count       sampling.time            midpoint                        file
+    ## 1     1 2021-06-05 09:52:00 2021-06-05 12:17:29        050621_1grey_St3.txt
+    ## 4     2 2021-06-05 09:52:00 2021-06-13 21:15:46      130621_green_St3_2.txt
+    ## 5     3 2021-06-05 09:52:00 2021-06-15 21:15:46 130621_green_St3_3dummy.txt
+    ## 6     4 2021-06-05 09:52:00 2021-06-20 21:15:46 130621_green_St3_4dummy.txt
+
+    ## more than 2 counts for sample id 'St3', ignoring file/s '130621_green_St3_3dummy.txt', '130621_green_St3_4dummy.txt'
+
+    ## Warning in process_samples(files = files, blk = blk, eff = eff,
+    ## meta = meta, : less than 2 counts for sample id 'St5', skipping file
+    ## '050621_2blue_St5_only_one_count.txt'
+
+``` r
+out
+```
+
+    ##   Ra224.DPMper100L err.Ra224.DPMper100L Ra223.DPMper100L err.Ra223.DPMper100L
+    ## 1        62.020833            3.8307499         1.836055                   NA
+    ## 2         8.891804            0.6255243         0.783590            0.1720034
+    ##    id
+    ## 1 St2
+    ## 2 St3
+
+## under the hood
+
+### file handling
+
+`files` (paths to files) can be different for samples, blanks and
+standards, but can also be the same, i.e. all relevant files can be in
+one folder
+
+EDIT: the sample ID is now defined as anything including the (last)
+occurrence of “St” but before the next “\_” or before the “.txt”
+extension. This is case-insensitive.
+
+Examples:  
+`050621_2blue_St2.txt` becomes `St2`  
+`140621_blue_st5-AlkorCruise_2.txt` becomes `st5-AlkorCruise`  
+but  
+`140621_blue_st5_AlkorCruise_2.txt` becomes `st5`  
+`050621_orange_st1cont.txt` becomes `st1cont` `050621_st6grey_.txt`
+becomes `st6grey`
+
 ## read data from RaDeCC output file
 
 `read_ra()` returns a list with all the content of the file. The
@@ -14,9 +221,7 @@ an argument `detectors`. The date format for the Start Time and Stop
 Time in the file is supplied in strptime-style via `date.format`.
 
 ``` r
-Ra <- read_ra(file = "data/test_case1/050621_1grey_St3.txt",
-              detectors = c("orange","blue","grey","green"), # these are current default values in the function
-              date.format = "%m/%d/%Y") # these are current default values in the function
+Ra <- read_ra(file = "data/test_case1/samples/050621_1grey_St3.txt", detectors = detec, date.format = datef) # these are current default values in the function
 Ra
 ```
 
@@ -26,8 +231,8 @@ Ra
     ## $original.filename
     ## [1] "050621_1grey_St3.txt"
     ## 
-    ## $type
-    ## [1] "sample"
+    ## $id
+    ## [1] "St3"
     ## 
     ## $detector
     ## [1] "grey"
@@ -187,71 +392,7 @@ Ra
     ## 141  142.15  0.302      2  3.285      3 11.263     14
     ## 142  144.15  0.305      0  3.260      0 11.280     11
 
-## get summaries of blank values and detector efficiency
-
-`summarise_blank()` and `summarise_efficiency()` take a list of file
-names, call `identify_type()` to identify blanks and standards,
-respectively, call `read_ra()` to read the results, and return a summary
-when `summarise = TRUE` (the default), or a table of all values if
-`summarise = FALSE`. `identify_type()` looks in the file name for
-strings; current defaults are `blank.id = "blank"` and
-`standard.id = "standard|std"`.
-
-``` r
-files <- list.files("data/AL557/", recursive = TRUE, full.names = TRUE, pattern = ".txt$")
-blk <- summarise_blank(files)
-blk
-```
-
-    ##    detector isotope        mean         sd  n
-    ## 1      blue     223 0.000000000 0.00000000  9
-    ## 2     green     223 0.000000000 0.00000000  7
-    ## 3      grey     223 0.000000000 0.00000000 10
-    ## 4    orange     223 0.000000000 0.00000000 10
-    ## 5      blue     224 0.009555556 0.01435367  9
-    ## 6     green     224 0.010571429 0.01760546  7
-    ## 7      grey     224 0.027000000 0.02018801 10
-    ## 8    orange     224 0.007100000 0.01576529 10
-    ## 9      blue  CMPTot 0.780555556 0.30197190  9
-    ## 10    green  CMPTot 1.189857143 0.58627395  7
-    ## 11     grey  CMPTot 0.814900000 0.42445009 10
-    ## 12   orange  CMPTot 0.690500000 0.45655017 10
-
-A warning will be printed if less than 3 values are used in a summary.
-
-``` r
-eff <- summarise_efficiency(files)
-```
-
-    ## some efficiencies have been calculated with fewer than 3 standard values
-
-``` r
-eff
-```
-
-    ##   detector isotope       mean          sd n
-    ## 1     blue     223 0.16719556          NA 1
-    ## 2    green     223 0.16171887 0.025992173 2
-    ## 3     grey     223 0.15970596 0.014366844 3
-    ## 4   orange     223 0.15368312 0.029657118 5
-    ## 5     blue     224 0.06786601 0.011661518 2
-    ## 6    green     224 0.07783872          NA 1
-    ## 7     grey     224 0.07834163 0.014916630 5
-    ## 8   orange     224 0.07367752 0.005927695 3
-
-`summarise_efficiency()` internally calls `calculate_efficiency()` to
-calculate efficiency.
-
-``` r
-calculate_efficiency(Ra = read_ra("data/AL557/Standards/050621_1orange_223Rastandard.txt"))
-```
-
-    ##                           filename         type isotope detector    eff.220
-    ## 1 050621_1orange_223Rastandard.txt 223_standard     223   orange 0.02040784
-    ##     eff.219
-    ## 1 0.1238499
-
-## process the results of sample measurements
+### process the results of sample measurements
 
 `process_ra()` takes the output of `read_ra()` and returns values that
 can be derived solely from the data in one measurement result file.
@@ -343,12 +484,12 @@ change later.
 
 ``` r
 # count 1
-c1 <- read_ra("data/test_case1/050621_1grey_St3.txt")
+c1 <- read_ra("data/test_case1/samples/050621_1grey_St3.txt", detectors = detec, date.format = datef)
 c1 <- process_ra(c1)
 c1 <- mutate_ra(eff = eff, blk = blk, pro = c1, filtration_volume_L = filtration_volume_L)
 
 # count 2
-c2 <- read_ra("data/test_case1/130621_green_St3_2.txt")
+c2 <- read_ra("data/test_case1/samples/130621_green_St3_2.txt", detectors = detec, date.format = datef)
 c2 <- process_ra(c2)
 c2 <- mutate_ra(eff = eff, blk = blk, pro = c2, filtration_volume_L = filtration_volume_L)
 ```
@@ -365,18 +506,21 @@ onFiber228Th <- onFiber_228Th(midpoint.1 = c1$midpoint,
 onFiber228Th
 ```
 
-    ## [1] 10.86429
+    ## [1] 10.86755
 
 The results, can then be calculated from the processed values of the
 first measurement/count using `results_Ra()`.
 
 ``` r
-results <- results_Ra(c1, sampling.time, onFiber228Th)
+results <- results_Ra(count1 = c1, 
+                      sampling.time = sampling.time, 
+                      onFiber228Th = onFiber228Th, 
+                      estimate.227Ac = 0.05)
 results
 ```
 
     ##   Ra224.DPMper100L err.Ra224.DPMper100L Ra223.DPMper100L err.Ra223.DPMper100L
-    ## 1         8.896966            0.6258874          0.78359            0.1720034
+    ## 1         8.891804            0.6255243          0.78359            0.1720034
 
 Relevant metadata can easily be added.
 
@@ -387,115 +531,27 @@ results
 ```
 
     ##   Ra224.DPMper100L err.Ra224.DPMper100L Ra223.DPMper100L err.Ra223.DPMper100L
-    ## 1         8.896966            0.6258874          0.78359            0.1720034
+    ## 1         8.891804            0.6255243          0.78359            0.1720034
     ##                   file       sampling.time
     ## 1 050621_1grey_St3.txt 2021-06-05 09:52:00
 
-# example with multiple samples
-
-To avoid the need to run the example workflow above for each sample,
-`process_samples()` loops over all sample files in a file list. The
-function accepts a list of file paths, and internally calls
-`identify_type()` to see which files are samples, so that also other
-files, like blanks and standards can be stored in the same folder. The
-file list can thus be the same as that used in `summarise_blank()` and
-`summarise_efficiency()` (that’s not the case in this example, though).
-Samples are then read with `read_ra()` and processed with `process_ra()`
-and `mutate_ra()`, and the output bound into a data frame. This
-dataframe can be returned by setting the argument `halfway = TRUE`. The
-target output however is a data frame of the output from `result_ra()`
-for each sample. Therefore, the function identifies samples from the
-file name using the argument `sample.id.pattern`, which (currently)
-accepts a regex pattern of the sample name. Measurements with the same
-sample ID are then processed in groups with `onFiber_228Th()` and
-`result_ra()`.
-
-In this example we have 2 samples with two measurements/counts each.
-(Note: the function also works when only counts of one sample are
-supplied, and then returns the result of only that sample)
-
-``` r
-samples <- list.files("data/test_case1/", pattern = ".txt$", full.names = TRUE)
-samples
-```
-
-    ## [1] "data/test_case1/050621_1grey_St3.txt"   
-    ## [2] "data/test_case1/050621_2blue_St2.txt"   
-    ## [3] "data/test_case1/130621_green_St3_2.txt" 
-    ## [4] "data/test_case1/130621_orange_St2_2.txt"
-
-The samples are named “St2” and “St3”. So to identify these we use
-`sample.id.pattern = "St[1-9]{1}"`.
-
-For now, we supply the required metadata, i.e. filtration volume and
-sampling time, in a data frame that will be passed to the argument
-`meta`. The column names must be exact, because `process_samples()`
-looks for those.
-
-``` r
-meta <- data.frame(id = c("St2", "St3"),
-                   sampling.time = as.POSIXct(c("2021-06-05 09:43:00", "2021-06-05 09:52:00")),
-                   volume = c(200.4, 200.5))
-meta
-```
-
-    ##    id       sampling.time volume
-    ## 1 St2 2021-06-05 09:43:00  200.4
-    ## 2 St3 2021-06-05 09:52:00  200.5
-
-Now we can run the example.
-
-``` r
-process_samples(files = samples,
-                blk = blk, eff = eff, meta = meta,
-                sample.id.pattern = "St[1-9]{1}", 
-                halfway = FALSE)
-```
-
-    ##   Ra224.DPMper100L err.Ra224.DPMper100L Ra223.DPMper100L err.Ra223.DPMper100L
-    ## 1        62.020833            3.8307499         1.836055                   NA
-    ## 2         8.896966            0.6258874         0.783590            0.1720034
-    ##    id
-    ## 1 St2
-    ## 2 St3
-
 # next
 
-- reading meta data
-  - sample id (name) is an important issue
-  - require filename to include metadata (i.e. filtration volume and
-    sampling time)?:
-    - ID.+\_tYYYYMMDDHHMMSS_v100-0L_dorange_ssample.txt
-  - or supply meta data table where the file names are linked to
-    relevant meta data
-    - if we do that then it might be better to include the detector in
-      that table as well
-- add necessary arguments to parent functions, e.g. 
-  - inherit `detectors` and `date.format` in read_ra() from parents
-  - identify_type() needs to inherit `blank.id` and `standard.id` -\>
-    DONE
-- should results_Ra() return the decay factors? (currently it doesn’t)
-- should summarise_blank() return values for CPMTot? (currently it does
-  but is not used downstream)
-- add warnings
-- error handling
-- change function and argument names to something nicer
-- make decay_factor() accept half life directly
-- only accept files with summary
-- write a repair_radecc() function to deal with missing summaries
-- pass the standard efficiencies from summarise_efficiency() to internal
-  calculate_efficiency()
-- in process_ra() add warning if midpoint cannot be calculated due to
-  missing or wrong times
-- should eff (and blk) be done independent of detector and then looped
-  for detectors? does the machine always have a number of different
-  detectors?
+- solve this problem:
+  - `identify_type(string = "St223_224standard_20200223", blank.id = "blank", standard.id = "standard|std")`
+- data output
+  - which meta data should be part of the output of process_samples()?
+  - should results_Ra() return the decay factors? (currently it doesn’t)
+  - should summarise_blank() return values for CPMTot? (currently it
+    does but is not used downstream)
 - code clean-up
+  - change function and argument names to something nicer
   - get rid of unnecessary ()
   - remove objects not needed downstream
   - unify the use of . and \_ in function and argument names
   - remove comments that are notes for the process (e.g. comparisons
     with excel)
+- error handling
 
 # probably dumb questions
 
@@ -504,3 +560,5 @@ process_samples(files = samples,
   e.g. in onFiber_228Th()
 - in excel sheet blanks cols P and L seem to link to the wrong cols, no
   downstream effect though.
+- it seems that the standards for efficiency are not blank corrected,
+  but there are standard blanks, is this a problem?
