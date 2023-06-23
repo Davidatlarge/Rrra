@@ -1,10 +1,13 @@
 # calculate detector efficiencies
 # Burts Efficiency Calc. 
 calculate_efficiency <- function(Ra, # a list object produced by read_ra()
+                                 standard.id,
                                  dpm.223.std = 9.94, # Personal Comm Walter Geibert (AWI)
                                  dpm.224.std = 12.1 # Personal Comm Walter Geibert (AWI)
 ) {
-  if(!grepl("standard$", Ra$type, ignore.case = TRUE)) {
+  
+  type <- identify_type(string = Ra$filename, standard.id = standard.id)
+  if(!grepl("standard$", type, ignore.case = TRUE)) {
     stop("the supplied data seems not to be from a standard")
   }
   
@@ -27,8 +30,8 @@ calculate_efficiency <- function(Ra, # a list object produced by read_ra()
     eff.220 <- corr.220/dpm.224.std
     
     return( data.frame(filename = Ra$filename,
-                       type = Ra$type,
-                       isotope = as.numeric(sub("(223|224).*", "\\1", Ra$type)),
+                       type = type,
+                       isotope = as.numeric(sub("(223|224).*", "\\1", type)),
                        detector = Ra$detector,
                        eff.220 = eff.220,
                        eff.219 = eff.219) )
@@ -36,4 +39,4 @@ calculate_efficiency <- function(Ra, # a list object produced by read_ra()
     warning(paste0("no valid summary in standard of file '", Ra$filename, "', ignoring file"))
   }
 }
-#calculate_efficiency(Ra = read_ra("data/AL557/Standards/050621_1orange_223Rastandard.txt"))
+#calculate_efficiency(Ra = read_ra("data/AL557/Standards/050621_1orange_223Rastandard.txt"), standard.id = "standard")

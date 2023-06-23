@@ -6,7 +6,7 @@
 # assigns the results so that only 220 counts are used with Ra224 and 219 counts with Ra223
 # it is possible to supply only one file name 
 summarise_blank <- function(files,
-                            blank.id = "blank", # string to identify blanks in the file name
+                            blank.id, # string to identify blanks in the file name
                             summarise = TRUE # should the results of all files be summarised, if FALSE returns a table of individual blanks
 ) {
   types <- unlist(lapply(files, function(x) identify_type(x, blank.id = blank.id)))

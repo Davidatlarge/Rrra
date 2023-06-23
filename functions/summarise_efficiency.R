@@ -9,11 +9,6 @@ summarise_efficiency <- function(files,
                                  standard.id = "standard|std", # string to identify standards in the file name
                                  summarise = TRUE # should the results of all files be summarised, if FALSE returns a table of individual efficiencies
 ) {
-  # load functions
-  source("functions/identify_type.R")
-  source("functions/calculate_efficiency.R")
-  source("functions/read_ra.R")
-  
   # find relevant files
   types <- unlist(lapply(files, function(x) identify_type(x, standard.id = standard.id)))
   standards <- files[which(grepl("standard$", types))]
@@ -23,7 +18,8 @@ summarise_efficiency <- function(files,
   eff <- data.frame()
   for(std in standards) {
     eff <- rbind(eff,
-                 calculate_efficiency(read_ra(std)) )
+                 calculate_efficiency(read_ra(std), standard.id = standard.id)
+                 )
   }
   
   if(summarise) {
