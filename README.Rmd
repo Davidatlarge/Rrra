@@ -7,6 +7,7 @@ output: github_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 sapply(list.files("functions/", full.names = T), source)
+library(dplyr)
 ```
 
 ## intro
@@ -36,7 +37,7 @@ standard.id = "standard|std"
 blank.id = "blank"
 ```
 
-The function `summarise_blank()` finds, processes and summarises files containing blank measurements. To identify blanks from the file name, it accepts input to the argument `blank.id`, and to properly summarise, it accepts a vector of detector names in `detectors`. A warning will be printed if less than 3 values are used in a summary. 
+The function `summarise_blank()` finds, processes and summarises files containing blank measurements. To identify blanks from the file name, it accepts input to the argument `blank.id`, and to properly summarise, it accepts a vector of detector names in `detectors`. The detector names should be part of the file name. A warning will be printed if less than 3 values are used in a summary. 
 ```{r}
 blk <- summarise_blank(files,
                        date.format = datef, 
@@ -59,7 +60,7 @@ eff <- summarise_efficiency(files,
 head(eff)
 ```
 
-Finally, `process_samples()` takes the meta data, output from `summarise_blank()` and `summarise_efficiencies()`, as well as the blank and standard identifiers and an estimate for 227Ac. The detector names are extracted from the inputs to `blk` and `eff`. With `verbose = TRUE` comes a stream of information about file processing, printed to the console. Setting `halfway = TRUE` returns a table of all the values for each sample file that are used for the final calculation of results. All these functions also accept the `date.format` to enable the use of files created by different system time settings.  
+Finally, `process_samples()` takes the meta data, output from `summarise_blank()` and `summarise_efficiencies()`, as well as the blank and standard identifiers and an estimate for 227Ac. The detector names are extracted from the inputs to `blk` and `eff`. With `verbose = TRUE` comes a stream of information about file processing, printed to the console. Setting `halfway = TRUE` returns a table of all the values for each sample file that are used for the final calculation of results. All these functions also accept the strptime-style `date.format` to enable correctly converting to POSIXct the Start Time and Stop Time in files created by different system time settings.  
 ```{r}
 out <- process_samples(files = files,
                        blk = blk, 
@@ -75,38 +76,49 @@ out
 ```
 
 
-
 ## under the hood
 ### file handling
-`files` (paths to files) can be different for samples, blanks and standards, but can also be the same, i.e. all relevant files can be in one folder
-
-EDIT: the sample ID is now defined as anything including the (last) occurrence of "St" but before the next "_" or before the ".txt" extension. This is case-insensitive.
-
-Examples:  
-`050621_2blue_St2.txt` becomes `St2`  
-`140621_blue_st5-AlkorCruise_2.txt` becomes `st5-AlkorCruise`  
-but  
-`140621_blue_st5_AlkorCruise_2.txt` becomes `st5`  
-`050621_orange_st1cont.txt` becomes `st1cont`
-`050621_st6grey_.txt` becomes `st6grey`
-
-## read data from RaDeCC output file
-`read_ra()` returns a list with all the content of the file. The detector names that should be part of the file name can be supplied as an argument `detectors`. The date format for the Start Time and Stop Time in the file is supplied in strptime-style via `date.format`.
-
+`files` (paths to files) can be different for samples, blanks and standards, but can also be the same, i.e. all relevant files can be in one folder. Internally, `summarise_blank()`, `summarise_efficiency()` and `process_samples()` call `identify_type()`, which inherits `blank.id` and `standard.id` and uses their values to identify the measurement type from the file name. 
 ```{r}
-Ra <- read_ra(file = "data/test_case1/samples/050621_1grey_St3.txt", detectors = detec, date.format = datef) # these are current default values in the function
+identify_type(string = "050621_1grey_St10_blank.txt", blank.id = blank.id, standard.id = standard.id)
+identify_type(string = "050621_1orange_228Rastandard.txt", blank.id = blank.id, standard.id = standard.id)
+identify_type(string = "060621_blue_223STD_blank.txt", blank.id = blank.id, standard.id = standard.id)
+identify_type(string = "St1_224standard_20200223", blank.id = blank.id, standard.id = standard.id)
+identify_type(string = "St223_224standard_20200223", blank.id = blank.id, standard.id = standard.id)
+```
+
+If neither `blank.id` nor `standard.id` value is found in the string, the measurement is assumed to be from a sample. It is thus not necessary to name samples as such, but is also is no disadvantage.
+```{r}
+identify_type(string = "050621_1grey_St3.txt", blank.id = blank.id, standard.id = standard.id)
+identify_type(string = "050621_1grey_St3.txt", blank.id = "something", standard.id = "other")
+```
+
+Only supplying one identifier does work but is not recommended. Only supplying `standard.id` results in a warning, because it is then possible to *mis*identify blanks that were measured before standards (i.e. standard blanks) as standards rather than the blanks they are.
+```{r}
+identify_type(string = "070621_orange_224STD_blank.txt", standard.id = standard.id)
+```
+
+Once the `files` have been filtered for the respective measurement type, the top functions call `read_ra()` on each of those files. `read_ra()` returns a list with all the content of the file.
+```{r}
+Ra <- read_ra(file = "data/test_case1/samples/050621_1grey_St3.txt", detectors = detec, date.format = datef)
+Ra$counts <- head(Ra$counts) # for better readability
 Ra
 ```
 
-### process the results of sample measurements
-`process_ra()` takes the output of `read_ra()` and returns values that can be derived solely from the data in one measurement result file.
+The sample ID, `Ra$id` is defined as any string including the (last) occurrence of "St" but before the next "\_" or before the ".txt" extension. This is case-insensitive. For example, `050621_2blue_St2.txt` becomes `St2`, `050621_orange_st1cont.txt` becomes `st1cont`, `050621_st6grey_.txt` becomes `st6grey`. A cruise ID or other info can be tacked on as long as it is not separated by "_": `140621_blue_st5-AlkorCruise_2.txt` becomes `st5-AlkorCruise` but `140621_blue_st5_AlkorCruise_2.txt` becomes `st5`. This created a slight nuisance because standards, that might not have station names, will get a wrong ID, e.g. `20220101_223Standard_2.txt` would become `Standard`. In effect this is not important because the ID of standards is not used in the workflow (other than the samples, who are processed in groups defined by ID).
 
+
+### data processing
+In `summarise_blank()` the outputs of each file are summarised grouped by detector and Ra isotope. In `summarise_blank()` some calculations for detector efficiencies are performed before summarising.  
+
+
+In `process_samples()`, `process_ra()` takes the output of `read_ra()` and returns values that can be derived solely from the data in one measurement result file.
 ```{r}
 pro <- process_ra(Ra)
 t( pro ) # transpose for better readability here
 ```
 
-`mutate_ra()` takes the output of `summarise_efficiency()`, `summarise_blank()`, `process_ra()`, as well as additional metadata to return more derived values. With the argument `merged.output = TRUE` (the default) the new values will be added to the output of `process_ra()` (which then could be overwritten; or the functions could be nested).
+`mutate_ra()` takes the output of `summarise_efficiency()`, `summarise_blank()` (inherited from the top function) and `process_ra()`, as well as additional metadata to return more derived values. With the argument `merged.output = TRUE` (the default) the new values will be added to the output of `process_ra()` (this is only useful if the functions are run outside the main workflow).
 
 ```{r} 
 final <- mutate_ra(eff = eff, 
@@ -119,32 +131,14 @@ t( # transpose for better readability here
    )
 ```
 
-# example with a single sample
-We use the blank and efficiency values created above. 
-And we add two required metadata (will be done differently later). 
-
+The results are then grouped by the samples´ `id`. 
 ```{r}
-sampling.time <- as.POSIXct("2021-06-05 09:52:00")
-filtration_volume_L <- 200.5
+# example count measurements of the same sample
+c1 <- read_ra("data/test_case1/samples/050621_1grey_St3.txt", detec, datef) %>% process_ra() %>% mutate_ra(eff, blk, ., 200.5)
+c2 <- read_ra("data/test_case1/samples/130621_green_St3_2.txt", detec, datef) %>% process_ra() %>% mutate_ra(eff, blk, ., 200.5)
 ```
 
-Two count measurements of one sample are (generally) needed for a result.
-Here we load and process the values "manually" but this will change later.
-
-```{r}
-# count 1
-c1 <- read_ra("data/test_case1/samples/050621_1grey_St3.txt", detectors = detec, date.format = datef)
-c1 <- process_ra(c1)
-c1 <- mutate_ra(eff = eff, blk = blk, pro = c1, filtration_volume_L = filtration_volume_L)
-
-# count 2
-c2 <- read_ra("data/test_case1/samples/130621_green_St3_2.txt", detectors = detec, date.format = datef)
-c2 <- process_ra(c2)
-c2 <- mutate_ra(eff = eff, blk = blk, pro = c2, filtration_volume_L = filtration_volume_L)
-```
-
-To correct for the ingrowth of decaying 228Th we estimate the amount of 228Th on the fiber using `onFiber_228Th` (the name is pretty bad and I'll change that).
-
+`onFiber_228Th` estimates the amount of 228Th on the fiber to determine the ingrowth of decaying 228Th.
 ```{r}
 onFiber228Th <- onFiber_228Th(midpoint.1 = c1$midpoint, 
                               midpoint.2 = c2$midpoint, 
@@ -153,22 +147,58 @@ onFiber228Th <- onFiber_228Th(midpoint.1 = c1$midpoint,
 onFiber228Th
 ```
 
-The results, can then be calculated from the processed values of the first measurement/count using `results_Ra()`.
-
+The results are then calculated from the processed values of the first measurement/count using `results_Ra()`.
 ```{r}
 results <- results_Ra(count1 = c1, 
-                      sampling.time = sampling.time, 
+                      sampling.time = as.POSIXct("2021-06-05 09:52:00"), 
                       onFiber228Th = onFiber228Th, 
                       estimate.227Ac = 0.05)
 results
 ```
 
-Relevant metadata can easily be added.
+The results of all samples are returned in one data frame.
 
+## Error cases
+`read_ra()`: Files with missing ends. Incorrect detector name supplied. Wrong date format supplied.
 ```{r}
-results$file <- c1$file
-results$sampling.time <- sampling.time
-results
+Ra <- read_ra("data/AL557/Count1/050621_1orange_St1.txt", detectors = "pink", date.format = "Y%m%d%")
+Ra$counts <- head(Ra$counts)
+Ra
+```
+
+`identify_type()`: Not supplying either identifier stops the function.
+```{r error=TRUE}
+identify_type(string = "050621_1grey_St3.txt")
+```
+
+`summarise_blank()`: No blanks in `files` stops the function
+```{r error=TRUE}
+summarise_blank("data/test_case1/samples/", detectors = detec, date.format = filef, blank.id = blank.id)
+```
+
+`summarise_efficiency()`: no standards in `files` stops the function
+```{r error=TRUE}
+summarise_efficiency("data/test_case1/samples/", detectors = detec, date.format = filef, blank.id = blank.id, standard.id = standard.id, dpm.223.std = 10, dpm.224.std = 12)
+```
+
+`process_ra()`: missing or incomplete summary stops the function, so does missing Start Time
+```{r error=TRUE}
+process_ra(read_ra("data/AL557/Count1/050621_1orange_St1.txt", detectors = detec, date.format = datef))
+```
+
+`mutate_ra()`: the function stops if the `pro` object's detector has no match in the `blk` or `eff` object
+
+*example coming*
+
+`results_ra()`: the function stops if the times are not supplied correctly or in the correct order
+```{r error=TRUE}
+results_Ra(count1 = c1, sampling.time = as.POSIXct("2023-12-31 12:12:12"), onFiber228Th = onFiber228Th, estimate.227Ac = 0.05)
+```
+
+`process_samples()`: multiple warnings, see above. Wrong meta data formats or no samples in `files` stops the function.
+```{r error=TRUE}
+process_samples(files = list.files("data/test_case1/blanks/", pattern = ".txt$", full.names = TRUE), 
+                blk, eff, meta, datef, blank.id, standard.id, estimate.227Ac = 0.05)
 ```
 
 
