@@ -1,10 +1,10 @@
-decay_factor <- function(isotope, # c(223,224)
+decay_factor <- function(halflife, # 11.434 for 223Ra, 3.66 for 224Ra
                          midpoint, # calculated with calculate_midpoint()
-                         sampling.time # as POCIXct with date and time
+                         sampling.time # as POSIXct with date and time
 ) {
-  hl <- data.frame(iso = c(223, 224),
-                   hl = c(11.434, 3.66))
-  return(exp(-log(2) / hl$hl[hl$iso==isotope] * as.numeric(midpoint-sampling.time) ))
+  if(!inherits(sampling.time, "POSIXct") | !inherits(midpoint, "POSIXct")) {stop("mdipoint and sampling.time must be in POSIXct format")}
+  
+  return(exp(-log(2) / halflife * as.numeric(midpoint-sampling.time) ))
 }
 
 #decay_factor(11.434, )

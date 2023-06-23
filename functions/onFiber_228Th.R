@@ -16,7 +16,7 @@ onFiber_228Th <- function(midpoint.1,
   
   if(error.out) {
     if(sampling.time>midpoint.2) stop("sampling.time must be earlier than midpoint.2")
-    decay.factor.224 <- exp(-log(2) / 3.66 * as.numeric(midpoint.2-sampling.time))
+    decay.factor.224 <- decay_factor(halflife = 3.66, midpoint = count1$midpoint, sampling.time = sampling.time) # 3.66 is the half life of 224Ra in days
     out <- out / decay.factor.224
   } 
   
