@@ -4,13 +4,16 @@
 # Alternatively for all samples and all counts, i.e. all individual RaDeCC measurements, 
 # the output of mutate_ra() can be returned
 
-process_samples <- function(files, # files = "data/test_case1/"
+process_samples <- function(files,
                             blk,
                             eff,
-                            blank.id = "blank", # is is for identify type to inherit, but it is a bit clumsy seeing that the strings were already given to summarise.blank() and summarise.efficiency()
-                            standard.id = "standard|std",
-                            meta, # depending on meta data input way, this can be removed
-                            halfway = FALSE, # change argument name
+                            meta,
+                            detectors, 
+                            date.format,
+                            blank.id,
+                            standard.id,
+                            estimate.227Ac,
+                            halfway = FALSE,
                             verbose = TRUE
 ) {
   # check if input is correct
@@ -30,7 +33,7 @@ process_samples <- function(files, # files = "data/test_case1/"
   # process and mutate all samples
   spl <- data.frame()
   for(sample in samples) {
-    ra <- read_ra(sample)
+    ra <- read_ra(sample, detectors = detectors, date.format = date.format)
     if(verbose) {
       message(paste0("identified sample '", ra$id, "' in file '", ra$filename, "'"))
     }
@@ -43,9 +46,10 @@ process_samples <- function(files, # files = "data/test_case1/"
       
       # process the sample
       pro <- process_ra(ra)
-      pro <- mutate_ra(eff = eff, blk = blk, 
-                           pro = pro, 
-                           filtration_volume_L = volume)
+      pro <- mutate_ra(eff = eff, 
+                       blk = blk, 
+                       pro = pro, 
+                       filtration_volume_L = volume)
       # add metadata
       pro$volume <- volume
       pro$sampling.time <- sampling.time
@@ -89,7 +93,7 @@ process_samples <- function(files, # files = "data/test_case1/"
                                     dpm.220per100L.2 = current$dpm.220per100L[2])
       
       # calculate the result
-      result <- results_Ra(current[1,], current$sampling.time[1], onFiber228Th)
+      result <- results_Ra(current[1,], current$sampling.time[1], onFiber228Th, estimate.227Ac = estimate.227Ac)
       result$id <- current$id[1]
       
       res <- rbind(res, result)

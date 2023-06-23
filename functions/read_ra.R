@@ -1,7 +1,7 @@
 # function to read .txt files that contain output of Ra analysis
 read_ra <- function(file, # a RaDeCC output file
-                    detectors = c("orange","blue","grey","green"), # quoted possible names of detectors in the file name
-                    date.format = "%m/%d/%Y", # the strptime style format of ONLY the DATE part of Start Time in the 2nd line of the RaDeCC .txt file 
+                    detectors, # quoted possible names of detectors in the file name
+                    date.format, # the strptime style format of ONLY the DATE part of Start Time in the 2nd line of the RaDeCC .txt file 
                     repair = FALSE # should the count summary and the Stop Time be repaired if they are missing from the file?
 ) {
   # read file by lines

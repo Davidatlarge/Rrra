@@ -3,7 +3,7 @@
 results_Ra <- function(count1, # the output of mutate_ra()
                        sampling.time, # as POSIX time
                        onFiber228Th, # numeric, preferably the output of onFiber_228Th()
-                       estimate.227Ac = 0.05 # a constant, will be subtracted from 219 concentration before dividing that by the decay factor
+                       estimate.227Ac # a constant, will be subtracted from 219 concentration before dividing that by the decay factor
 ) {
   if(is.na(count1$midpoint)) stop("The midpoint of count1 is NA, cannot calculate results.")
   if(sampling.time>count1$midpoint) stop("sampling.time must be earlier than the midpoint of count1")

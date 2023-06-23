@@ -6,10 +6,12 @@
 # then aggregates the results (unless summarise ==FALSE)
 # it is possible to supply only one file name 
 summarise_efficiency <- function(files,
-                                 standard.id = "standard|std", # string to identify standards in the file name
-                                 blank.id = "blank",
-                                 dpm.223.std = 9.94, # Personal Comm Walter Geibert (AWI)
-                                 dpm.224.std = 12.1, # Personal Comm Walter Geibert (AWI)
+                                 date.format, # passed to read_ra()
+                                 detectors, # passed to read_ra()
+                                 standard.id, # passed to identify_type()
+                                 blank.id, # passed to identify_type()
+                                 dpm.223.std, 
+                                 dpm.224.std, 
                                  summarise = TRUE # should the results of all files be summarised, if FALSE returns a table of individual efficiencies
 ) {
   # find relevant files
@@ -20,7 +22,7 @@ summarise_efficiency <- function(files,
   # calculate efficiencies from standard measurements
   eff <- data.frame()
   for(std in standards) {
-    Ra <- read_ra(std)
+    Ra <- read_ra(std, detectors = detectors, date.format = date.format)
     type <- identify_type(std, standard.id = standard.id, blank.id = blank.id)
     CPM219 <- Ra$count.summary$CPM219
     CPM220 <- Ra$count.summary$CPM220

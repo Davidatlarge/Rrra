@@ -6,7 +6,9 @@
 # assigns the results so that only 220 counts are used with Ra224 and 219 counts with Ra223
 # it is possible to supply only one file name 
 summarise_blank <- function(files,
-                            blank.id = "blank", # string to identify blanks in the file name
+                            date.format, # passed to read_ra()
+                            detectors, # passed to read_ra()
+                            blank.id, # string to identify blanks in the file name
                             summarise = TRUE # should the results of all files be summarised, if FALSE returns a table of individual blanks
 ) {
   types <- unlist(lapply(files, function(x) identify_type(x, blank.id = blank.id)))
@@ -16,7 +18,7 @@ summarise_blank <- function(files,
   # extract values from blank measurement results
   blk <- data.frame()
   for(blank in blanks) {
-    current <- read_ra(blank)
+    current <- read_ra(blank, detectors = detectors, date.format = date.format)
     if(all(!is.na(current$count.summary))) {
       blk <- rbind(blk,
                    data.frame(file = sub(".*[\\\\|/]", "", blank),
