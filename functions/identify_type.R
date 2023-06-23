@@ -33,7 +33,7 @@ identify_type <- function(string, # generally a file name
   if(grepl("standard", type) &
      grepl("223|224", string)
   ) { 
-    type <- paste0(sub(".*(223|224).*", "\\1", string), "_", type) 
+    type <- paste0(sub(".*?(?<!\\d)(22[34])(?!\\d).*", "\\1", string, perl=TRUE), "_", type) 
   }
   
   return(type)
@@ -46,3 +46,7 @@ identify_type <- function(string, # generally a file name
 # identify_type(string = "070621_orange_224STD_blank.txt", standard.id = "standard|std")
 # identify_type(string = "050621_1orange_228Rastandard.txt", blank.id = "blank", standard.id = "standard|std")
 # identify_type(string = "060621_blue_223STD_blank.txt", blank.id = "blank", standard.id = "standard|std")
+# identify_type(string = "St1_224standard_20200223", blank.id = "blank", standard.id = "standard|std")
+# identify_type(string = "St223_224standard_20200223", blank.id = "blank", standard.id = "standard|std")
+
+
