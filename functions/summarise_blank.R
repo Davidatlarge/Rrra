@@ -9,9 +9,6 @@ summarise_blank <- function(files,
                             blank.id = "blank", # string to identify blanks in the file name
                             summarise = TRUE # should the results of all files be summarised, if FALSE returns a table of individual blanks
 ) {
-  source("functions/read_ra.R")
-  source("functions/identify_type.R")
-  
   types <- unlist(lapply(files, function(x) identify_type(x, blank.id = blank.id)))
   blanks <- files[which(grepl("blank$", types))]
   if(length(blanks)<1) {stop("no blanks indentified in input files")}
@@ -20,12 +17,16 @@ summarise_blank <- function(files,
   blk <- data.frame()
   for(blank in blanks) {
     current <- read_ra(blank)
-    blk <- rbind(blk,
-                 data.frame(file = sub(".*[\\\\|/]", "", blank),
-                            detector = current$detector,
-                            CMP219 = current$count.summary$CPM219,
-                            CMP220 = current$count.summary$CPM220,
-                            CMPTot = current$count.summary$CPMTot))
+    if(all(!is.na(current$count.summary))) {
+      blk <- rbind(blk,
+                   data.frame(file = sub(".*[\\\\|/]", "", blank),
+                              detector = current$detector,
+                              CMP219 = current$count.summary$CPM219,
+                              CMP220 = current$count.summary$CPM220,
+                              CMPTot = current$count.summary$CPMTot))
+    } else {
+      warning(paste0("no valid summary in blank of file '", current$filename, "', ignoring file"))
+    }
   }
   
   # summarise results
